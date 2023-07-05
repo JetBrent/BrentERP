@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace BrentERP
 {
-    internal class JournalEntry
+    public class JournalEntry
     {
-        private protected DateTime JEDate;
-        private protected int DocumentNo;
-        private protected List<JELine> JELines;
-        private protected string JEDescription;
+        public DateTime JEDate;
+        public int DocumentNo;
+        public List<JELine> JELines;
+        public string JEDescription;
 
-        internal JournalEntry(int documentNo, string jEDescription)
+        public JournalEntry(int documentNo, string jEDescription)
         {
             JEDate = DateTime.Now;
             DocumentNo = documentNo;
@@ -22,13 +22,13 @@ namespace BrentERP
 
         }
 
-        internal List<JELine> GetJE()
+        public List<JELine> GetJE()
         {
             return JELines;
 
         }
 
-        internal bool CheckEqual()
+        public bool CheckEqual()
         {
             decimal DebitAmount = 0;
             decimal CreditAmount = 0;
@@ -47,17 +47,16 @@ namespace BrentERP
             }
             if (DebitAmount == CreditAmount)
             {
-                Console.WriteLine($"Document Number {DocumentNo} is balanced.");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Document Number {DocumentNo} is unbalanced! \n Debit amount is : {DebitAmount}. Credit Amount is {CreditAmount}");
+                Console.WriteLine($"Unbalanced Document Number {DocumentNo}. \n Debit amount is : {DebitAmount}. Credit Amount is {CreditAmount}.");
                 return false;
             }
         }
 
-        internal void AddLine(JELine line)
+        public void AddLine(JELine line)
         {
             line.JELineDate = JEDate;
             line.JELineDesc = JEDescription;
@@ -65,7 +64,7 @@ namespace BrentERP
             JELines.Add(line);
         }
 
-        internal void AddLine(string accountNo, string drCr, decimal amount)
+        public void AddLine(string accountNo, string drCr, decimal amount)
         {
             var line = new JELine(accountNo, drCr, amount);
             line.JELineDate = JEDate;
@@ -73,8 +72,5 @@ namespace BrentERP
             line.LineDocNum = DocumentNo;
             JELines.Add(line);
         }
-
-
-
     }
 }

@@ -9,14 +9,14 @@ namespace BrentERP
 {
 
 
-    internal class JELine
+    public class JELine
     {
-        internal string AccountNo { get; set; }
-        internal string DrCr { get; set; }
-        internal decimal Amount { get; set; }
-        internal DateTime? JELineDate { get; set; }
-        internal string? JELineDesc { get; set; }
-        internal int? LineDocNum { get; set; }
+        public string AccountNo { get; set; }
+        public string DrCr { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime? JELineDate { get; set; }
+        public string? JELineDesc { get; set; }
+        public int? LineDocNum { get; set; }
 
 
         public JELine(string accountNo, string drCr, decimal amount)
