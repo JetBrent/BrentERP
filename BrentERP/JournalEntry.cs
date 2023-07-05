@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,54 +10,41 @@ namespace BrentERP
     internal class JournalEntry
     {
         private protected DateTime JEDate;
-        private protected double Debit;
-        private protected double Credit;
-        private protected int DebitAccountNumber;
-        private protected int CreditAccountNumber;
-        private protected int JENumber;
-        private protected string DebitAccountName;
-        private protected string CreditAccountName;
+        private protected int DocumentNo;
+        private protected List<JELine> JELines;
         private protected string JEDescription;
 
-        internal JournalEntry(double debit, double credit, int debitAccountNumber, string debitAccountName, int creditAccountNumber ,string creditAccountName, string jEDescription, int jENumber)
+        internal JournalEntry(int documentNo, string jEDescription)
         {
-            try
-            {
-                DateTime JE = DateTime.Now;
-                CreditAccountNumber = creditAccountNumber;
-                DebitAccountNumber = debitAccountNumber;
-                DebitAccountName = debitAccountName;
-                CreditAccountName = creditAccountName;
-                JEDescription = jEDescription;
-                JENumber = jENumber;
+            JEDate = DateTime.Now;
+            DocumentNo = documentNo;
+            JEDescription = jEDescription;
 
-                if (debit == 0 || debit < 0)
-                {
-                    throw new ArgumentException("Debit must not be equal or less than 0!");
-                }
-                else if (credit == 0 || credit < 0)
-                {
-                    throw new ArgumentException("Credit must not be equal or less than 0!");
-                }
-                else if (debit != credit)
-                {
-                    throw new ArgumentException("Debit amount must be equal to Credit amount!");
-                }
-            catch (ArgumentException e) 
-            {
-                Console.WriteLine("ArgumentException Error : {0}", e.Message);
-            }
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Exception on JE Class Constructor: {e}");
-            }
-            
         }
 
-        // TODO: Add SQL Code to add journal entry details to the journal entry database
-        // TODO: Convert Debit, Credit, DebitAccountNo, CreditAccountNo, DebitAccountName, DebitAccountNo to Dict
+        internal List<JELine> GetJE()
+        {
+            return JELines;
+        }
+
+        internal void AddLine(JELine line)
+        {
+            line.JELineDate = JEDate;
+            line.JELineDesc = JEDescription;
+            line.LineDocNum = DocumentNo;
+            JELines.Add(line);
+        }
+
+        internal void AddLine(string accountNo, string drCr, decimal amount)
+        {
+            var line = new JELine(accountNo, drCr, amount);
+            line.JELineDate = JEDate;
+            line.JELineDesc = JEDescription;
+            line.LineDocNum = DocumentNo;
+            JELines.Add(line);
+        }
+
+
 
     }
 }
