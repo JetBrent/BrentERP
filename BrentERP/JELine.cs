@@ -26,7 +26,11 @@ namespace BrentERP
 
                 if (amount == 0 || amount < 0)
                 {
-                    throw new ArgumentException($"Amount must not be equal or less than 0!");
+                    throw new ArgumentException("Amount must not be equal or less than 0!");
+                }
+                else if (DrCr != "Debit" || DrCr != "Credit")
+                {
+                    throw new ArgumentException("Please input either \"Debit\" or \"Credit\"!");
                 }
                 else
                 {

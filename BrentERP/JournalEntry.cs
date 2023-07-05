@@ -25,6 +25,36 @@ namespace BrentERP
         internal List<JELine> GetJE()
         {
             return JELines;
+
+        }
+
+        internal bool CheckEqual()
+        {
+            decimal DebitAmount = 0;
+            decimal CreditAmount = 0;
+            foreach (JELine j in JELines)
+            {
+                if (j.DrCr == "Debit")
+                {
+
+                    DebitAmount += j.Amount;
+                }
+                else if (j.DrCr == "Credit")
+                {
+                    CreditAmount += j.Amount;
+                }
+
+            }
+            if (DebitAmount == CreditAmount)
+            {
+                Console.WriteLine($"Document Number {DocumentNo} is balanced.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Document Number {DocumentNo} is unbalanced! \n Debit amount is : {DebitAmount}. Credit Amount is {CreditAmount}");
+                return false;
+            }
         }
 
         internal void AddLine(JELine line)
