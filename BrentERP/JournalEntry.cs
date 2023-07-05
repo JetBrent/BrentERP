@@ -30,18 +30,23 @@ namespace BrentERP
                 JEDescription = jEDescription;
                 JENumber = jENumber;
 
-                if (debit == 0)
+                if (debit == 0 || debit < 0)
                 {
-                    throw new ArgumentException("Debit must not equal to 0!");
+                    throw new ArgumentException("Debit must not be equal or less than 0!");
                 }
-                else if (credit == 0)
+                else if (credit == 0 || credit < 0)
                 {
-                    throw new ArgumentException("Credit must not equal to 0!");
+                    throw new ArgumentException("Credit must not be equal or less than 0!");
                 }
                 else if (debit != credit)
                 {
-                    throw new ArgumentException("Debit must be equal to Credit!");
+                    throw new ArgumentException("Debit amount must be equal to Credit amount!");
                 }
+            catch (ArgumentException e) 
+            {
+                Console.WriteLine("ArgumentException Error : {0}", e.Message);
+            }
+
             }
             catch (Exception e)
             {
