@@ -19,7 +19,8 @@ namespace BrentERP
             JEDate = DateTime.Now;
             DocumentNo = documentNo;
             JEDescription = jEDescription;
-
+            var linestart = new List<JELine> { };
+            JELines = linestart;
         }
 
         public List<JELine> GetJE()
@@ -53,10 +54,10 @@ namespace BrentERP
             {
                 Console.WriteLine($"Unbalanced Document Number {DocumentNo}. \n Debit amount is : {DebitAmount}. Credit Amount is {CreditAmount}.");
                 return false;
-            }
+            } 
         }
 
-        public void AddLine(JELine line)
+        public void AddJELine(JELine line) 
         {
             line.JELineDate = JEDate;
             line.JELineDesc = JEDescription;
@@ -64,13 +65,21 @@ namespace BrentERP
             JELines.Add(line);
         }
 
-        public void AddLine(string accountNo, string drCr, decimal amount)
+        public void AddLine(string accountNo, string drCr, decimal amount) // Constructor with properties as input. Will be used for update JE functions
         {
             var line = new JELine(accountNo, drCr, amount);
             line.JELineDate = JEDate;
             line.JELineDesc = JEDescription;
             line.LineDocNum = DocumentNo;
             JELines.Add(line);
+        }
+        public void PrintJE()
+        {
+            Console.WriteLine(" Journal Entry Number | Account Number | Debit/ Credit | Date | Description");
+            foreach (JELine j in JELines)
+            {
+                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocNum, j.AccountNo, j.DrCr, j.Amount, j.JELineDate, j.JELineDesc);
+            }
         }
     }
 }
