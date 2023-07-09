@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace BrentERP
 {
-    public class JELine
+    internal class JELine
     {
-        public string AccountNo { get; set; }
+        public int AccountNo { get; set; }
         public string DrCr { get; set; }
         public decimal Amount { get; set; }
         public DateTime? JELineDate { get; set; }
@@ -17,11 +17,11 @@ namespace BrentERP
         public int? LineDocNum { get; set; }
 
 
-        public JELine(string accountNo, string drCr, decimal amount)
+        public JELine(AccountCode accountNo, string drCr, decimal amount)
         {
             {
                 Amount = amount;
-                AccountNo = accountNo;
+                AccountNo = accountNo.AccountNumber;
                 DrCr = drCr;
             }
         }
