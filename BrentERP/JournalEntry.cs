@@ -9,23 +9,24 @@ namespace BrentERP
 {
     internal class JournalEntry
     {
-        public DateTime JEDate;
-        public int DocumentNo;
-        public List<JELine> JELines;
-        public string JEDescription;
+        public DateTime EntryAddDate;
+        public DateTime? EntryPostDate;
+        public int DocumentNumber;
+        public List<JournalEntryLine> JournalEntryLines;
+        public string Description;
 
-        public JournalEntry(int documentNo, string jEDescription)
+        public JournalEntry(int documentNumber, string description)
         {
-            JEDate = DateTime.Now;
-            DocumentNo = documentNo;
-            JEDescription = jEDescription;
-            var linestart = new List<JELine> { };
-            JELines = linestart;
+            EntryAddDate = DateTime.Now;
+            DocumentNumber = documentNumber;
+            Description = description;
+            var linestart = new List<JournalEntryLine> { };
+            JournalEntryLines = linestart;
         }
 
-        public List<JELine> GetJE()
+        public List<JournalEntryLine> GetJE()
         {
-            return JELines;
+            return JournalEntryLines;
 
         }
 
@@ -33,7 +34,7 @@ namespace BrentERP
         {
             decimal DebitAmount = 0;
             decimal CreditAmount = 0;
-            foreach (JELine j in JELines)
+            foreach (JournalEntryLine j in JournalEntryLines)
             {
                 if (j.DrCr == "Dr")
                 {
@@ -48,58 +49,56 @@ namespace BrentERP
             }
             if (DebitAmount == CreditAmount)
             {
-                Console.WriteLine($"Document Number {DocumentNo} is equal!");
+                Console.WriteLine($"Document Number {DocumentNumber} is equal!");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Unbalanced Document Number {DocumentNo}. \nDebit amount is : {DebitAmount}. Credit Amount is {CreditAmount}.");
+                Console.WriteLine($"Unbalanced Document Number {DocumentNumber}. \nDebit amount is : {DebitAmount}. Credit Amount is {CreditAmount}.");
                 return false;
             } 
         }
 
-        public void AddLine(JELine line) 
+        public void AddLine(JournalEntryLine line) 
         {
-            line.JELineDate = JEDate;
-            line.JELineDesc = JEDescription;
-            line.LineDocNum = DocumentNo;
-            JELines.Add(line);
+            line.LineAddDate = EntryAddDate;
+            line.LinePostDate = EntryPostDate;
+            line.LineDesc = Description;
+            line.LineDocumentNumber = DocumentNumber;
+            JournalEntryLines.Add(line);
         }
 
-        public void AddLine(AccountCode accountNo, string drCr, decimal amount) // Constructor with properties as input. Will be used for update JE functions
+        public void AddLine(AccountCode accountNumber, string drCr, decimal amount) // Constructor with properties as input. Will be used for update JE functions
         {
-            var line = new JELine(accountNo, drCr, amount);
-            line.JELineDate = JEDate;
-            line.JELineDesc = JEDescription;
-            line.LineDocNum = DocumentNo;
-            JELines.Add(line);
+            var line = new JournalEntryLine(accountNumber, drCr, amount);
+            line.LineAddDate = EntryAddDate;
+            line.LineDesc = Description;
+            line.LineDocumentNumber = DocumentNumber;
+            JournalEntryLines.Add(line);
         }
         public bool CheckJELines() //Check the number of lines in the journal entry
         {
             int numberoflines = 0;
-            foreach (JELine line in JELines)
-            {
-                numberoflines++;
-            }
+            foreach (JournalEntryLine line in JournalEntryLines) numberoflines++;
             if (numberoflines < 1)
             {
-                Console.WriteLine($"The Document Number {DocumentNo} has only 1 line!");
+                Console.WriteLine($"The Document Number {DocumentNumber} has only 1 line!");
                 return false;
             }
             else
             {
-                Console.WriteLine($"The Document Number {DocumentNo} has {numberoflines} lines.");
+                Console.WriteLine($"The Document Number {DocumentNumber} has {numberoflines} lines.");
                 Console.WriteLine();
                 return true;
             }
         }
         public void PrintJE()
         {
-            Console.WriteLine(" Journal Entry Number | Account Number | Debit/ Credit | Date | Description");
+            Console.WriteLine(" Document Number | Account Number | Debit/ Credit | Date | Description");
             Console.WriteLine("----------------------------------------------------------------------------");
-            foreach (JELine j in JELines)
+            foreach (JournalEntryLine j in JournalEntryLines)
             {
-                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocNum, j.AccountNo, j.DrCr, j.Amount, j.JELineDate, j.JELineDesc);
+                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.AccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDesc);
             }
         }
     }

@@ -1,11 +1,14 @@
-﻿
+﻿using BrentSQLDB;
+
 namespace BrentERP
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Utils.MainMenu();
+
+            Utils.InitDB();
+            Console.WriteLine("Program finished.");
             Console.ReadKey();
 
 

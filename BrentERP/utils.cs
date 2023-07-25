@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using BrentSQLDB;
 
 namespace BrentERP
 {
     internal static class Utils
     {
+        public static void InitDB() 
+        {
+            var db = new BrentDB();
+            db.Init("localhost","root","MYBRENT.sql!");
+        }
+
         public static void MainMenu()
         {
             while (true)
@@ -32,62 +40,70 @@ namespace BrentERP
                 """);
                 string userinput = Console.ReadLine();
                 var boolparseinput = Int32.TryParse(userinput, out var parseinput);
-
-                if (userinput.ToLower() == "q" || userinput.ToUpper() == "Q")
+                if(userinput != null)
                 {
-                    Console.Clear();
-                    Console.WriteLine("Exiting application...");
-                    break;
-                }
+                    if (userinput.ToLower() == "q" || userinput.ToUpper() == "Q")
+                    {
+                        Console.Clear();
+                        Console.WriteLine("Exiting application...");
+                        break;
+                    }
 
-                else if (parseinput == 1)
-                {
-                    Console.Clear();
-                    CreateJE();
-                    Console.WriteLine("Press enter to continue...");
-                    Console.ReadKey();
-                    Console.Clear();
-                }
+                    else if (parseinput == 1)
+                    {
+                        Console.Clear();
+                        CreateJE();
+                        Console.WriteLine("Press enter to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
+                    }
 
-                else if (parseinput == 2)
-                {
-                    continue; //TODO: Implement posting of journal entry from JE listing from SL of non posted JEs
-                }
+                    else if (parseinput == 2)
+                    {
+                        continue; //TODO: Implement posting of journal entry from JE listing from SL of non posted JEs
+                    }
 
-                else if (parseinput == 3)
-                {
-                    //TODO: Implement of either posted or not yet posted journal entry
-                    Console.WriteLine("Viewing journal entry...");
-                    continue;
-                }
+                    else if (parseinput == 3)
+                    {
+                        //TODO: Implement of either posted or not yet posted journal entry
+                        Console.WriteLine("Viewing journal entry...");
+                        continue;
+                    }
 
-                else if (parseinput == 4)
-                {
-                    Console.WriteLine("Viewing GL accounts...");
-                    continue;
-                }
+                    else if (parseinput == 4)
+                    {
+                        Console.WriteLine("Viewing GL accounts...");
+                        continue;
+                    }
 
-                else if (parseinput == 5)
-                {
-                    RegisterAccountCode();
-                    //TODO: Registering GL account to SQL database
-                }
+                    else if (parseinput == 5)
+                    {
+                        RegisterAccountCode();
+                        //TODO: Registering GL account to SQL database
+                    }
 
-                else if (parseinput == 6)
-                {
-                    continue; //TODO: Implement export of journal entry listing here
-                }
-                
-                else if (parseinput == 7)
-                {
-                    continue; //TODO: Implement export of trial balance here
-                }
+                    else if (parseinput == 6)
+                    {
+                        continue; //TODO: Implement export of journal entry listing here
+                    }
 
+                    else if (parseinput == 7)
+                    {
+                        continue; //TODO: Implement export of trial balance here
+                    }
+
+                    else
+                    {
+                        Console.Clear();
+                        continue;
+                    }
+                }
                 else
                 {
                     Console.Clear();
                     continue;
                 }
+
             }
         }
 
@@ -115,13 +131,13 @@ namespace BrentERP
                     while (true)
                     {
                         jedesc = Console.ReadLine();
-                        if (jedesc == null)
+                        if (jedesc != null)
                         {
-                            Console.WriteLine("Please write a non-blank journal entry description!");
+                            break;
                         }
                         else
                         {
-                            break;
+                            Console.WriteLine("Please write a non-blank journal entry description!");
                         }
                     }
                     JournalEntry je = new JournalEntry(intdocnum, jedesc);
@@ -183,7 +199,7 @@ namespace BrentERP
                             }
                         }
 
-                        JELine line = new JELine(accountno, drcr, amount); // Add new journal entry line
+                        JournalEntryLine line = new JournalEntryLine(accountno, drcr, amount); // Add new journal entry line
                         je.AddLine(line);
 
                         Console.WriteLine("Do you want to add more lines? Press y if yes. Press any key to exit.");
