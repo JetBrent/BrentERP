@@ -9,7 +9,7 @@ namespace BrentERP
 {
     internal class JournalEntryLine
     {
-        public int AccountNumber { get; set; }
+        public int LineAccountNumber { get; set; }
         public string DrCr { get; set; } // Debit or Credit
         public decimal Amount { get; set; }
         public DateTime? LineAddDate { get; set; }
@@ -22,9 +22,15 @@ namespace BrentERP
         {
             {
                 Amount = amount;
-                AccountNumber = accountNo.AccountNumber;
+                LineAccountNumber = accountNo.AccountNumber;
                 DrCr = drCr;
             }
+        }
+
+        public object[] LineToArray(JournalEntryLine line)
+        {
+            var returnarray = new object[] {line.LineDocumentNumber, line.LineAccountNumber, line.DrCr, line.LineAddDate, line.LinePostDate, line.LineDesc };
+            return returnarray;
         }
     }
 }

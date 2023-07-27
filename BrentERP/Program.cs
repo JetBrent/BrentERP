@@ -6,9 +6,9 @@ namespace BrentERP
     {
         static void Main(string[] args)
         {
-
             Utils.InitDB();
-            Console.WriteLine("Program finished.");
+            var con = Utils.ConnectToDB();
+            Utils.MainMenu(con);
             Console.ReadKey();
 
 

@@ -98,8 +98,19 @@ namespace BrentERP
             Console.WriteLine("----------------------------------------------------------------------------");
             foreach (JournalEntryLine j in JournalEntryLines)
             {
-                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.AccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDesc);
+                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.LineAccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDesc);
             }
+        }
+
+        public List<object[]> EntryToList(JournalEntry je)
+        {
+            var list = new List<object[]>();
+            foreach (JournalEntryLine line in je.JournalEntryLines)
+            {
+                var array = line.LineToArray(line);
+                list.Add(array);
+            }
+            return list;
         }
     }
 }

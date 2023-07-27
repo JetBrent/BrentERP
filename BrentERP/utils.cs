@@ -6,6 +6,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using BrentSQLDB;
+using MySql.Data.MySqlClient;
 
 namespace BrentERP
 {
@@ -17,7 +18,36 @@ namespace BrentERP
             db.Init("localhost","root","MYBRENT.sql!");
         }
 
-        public static void MainMenu()
+        public static MySqlConnection ConnectToDB()
+        {
+            var db = new BrentDB();
+            var con = db.ConnectToDB("localhost", "root", "MYBRENT.sql!");
+            return con;
+        }
+
+        public static void PrintGeneralLedger()
+        {
+            var db = new BrentDB();
+            var con = ConnectToDB();
+            string table = "general_ledger";
+            var result = db.ReadAllFromDatabase(con, table);
+            foreach (var item in result)
+            {
+                Console.WriteLine(item);
+            }
+            Console.WriteLine("Finished printing the general ledger.");
+        }
+
+        public static void ViewJournalLedger(MySqlConnection con)
+        {
+            var db = new BrentDB();
+            var jl = db.ReadAllFromDatabase(con, "journal_ledger");
+            for (int i = 0; i < jl.Count; i++)
+            {
+                Console.WriteLine(jl[i][0], jl[i][1], jl[i][2], jl[i][3], jl[i][4], jl[i][5], jl[i][6]);
+            }
+        }
+        public static void MainMenu(MySqlConnection con)
         {
             while (true)
             {
@@ -33,6 +63,8 @@ namespace BrentERP
                 5. Register GL Account
                 6. Export Journal Entry Listing
                 7. Export Trial Balance
+                8. View General Ledger
+                9. View Journal Ledger
                 
                 Press q to quit.
 
@@ -52,7 +84,7 @@ namespace BrentERP
                     else if (parseinput == 1)
                     {
                         Console.Clear();
-                        CreateJE();
+                        CreateJE(con);
                         Console.WriteLine("Press enter to continue...");
                         Console.ReadKey();
                         Console.Clear();
@@ -92,6 +124,12 @@ namespace BrentERP
                         continue; //TODO: Implement export of trial balance here
                     }
 
+                    else if (parseinput == 8)
+                    {
+                        PrintGeneralLedger();
+                        Console.ReadKey();
+                    }
+
                     else
                     {
                         Console.Clear();
@@ -107,7 +145,7 @@ namespace BrentERP
             }
         }
 
-        public static void CreateJE()
+        public static void CreateJE(MySqlConnection con)
         {
             try
             {
@@ -210,7 +248,9 @@ namespace BrentERP
                         }
                         else
                         {
-                            Console.WriteLine("Journal line creation is succesful! \n Here is the created journal entry: \n");
+                            Console.WriteLine("Here is the created journal entry: \n");
+                            var db = new BrentDB();
+                            db.AddJournalEntry(con, je.EntryToList(je));
                             je.PrintJE();
                             JElinecreationsuccess = true;
                         }
