@@ -18,6 +18,7 @@ namespace BrentERP
         public JournalEntry(int documentNumber, string description)
         {
             EntryAddDate = DateTime.Now;
+            EntryPostDate = DateTime.Now; // Post date would be added using the InsertPostDate method
             DocumentNumber = documentNumber;
             Description = description;
             var linestart = new List<JournalEntryLine> { };
@@ -62,7 +63,7 @@ namespace BrentERP
         public void AddLine(JournalEntryLine line) 
         {
             line.LineAddDate = EntryAddDate;
-            line.LinePostDate = EntryPostDate;
+            line.LinePostDate = EntryPostDate; // Post date would be added using the InsertPostDate method
             line.LineDesc = Description;
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
@@ -73,6 +74,7 @@ namespace BrentERP
             var line = new JournalEntryLine(accountNumber, drCr, amount);
             line.LineAddDate = EntryAddDate;
             line.LineDesc = Description;
+            line.LinePostDate = EntryPostDate; // Post date would be added using the InsertPostDate method
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
         }
@@ -102,15 +104,25 @@ namespace BrentERP
             }
         }
 
-        public List<object[]> EntryToList(JournalEntry je)
+        public List<object[]> EntryToList() // Convert Journal Entry to List of arrays for posting to database
         {
             var list = new List<object[]>();
-            foreach (JournalEntryLine line in je.JournalEntryLines)
+            foreach (JournalEntryLine line in JournalEntryLines)
             {
                 var array = line.LineToArray(line);
                 list.Add(array);
             }
             return list;
+        }
+        
+        public void InsertPostDate()
+        {
+            EntryPostDate = DateTime.Now;
+            foreach (JournalEntryLine line in JournalEntryLines)
+            {
+                line.LinePostDate = EntryPostDate;
+            }
+
         }
     }
 }

@@ -42,9 +42,17 @@ namespace BrentERP
         {
             var db = new BrentDB();
             var jl = db.ReadAllFromDatabase(con, "journal_ledger");
-            for (int i = 0; i < jl.Count; i++)
+            foreach (var line in jl)
             {
-                Console.WriteLine(jl[i][0], jl[i][1], jl[i][2], jl[i][3], jl[i][4], jl[i][5], jl[i][6]);
+
+                Console.Write("|");
+                foreach (var item in line)
+                {
+                    Console.Write(item);
+                    Console.Write("|");
+
+                }
+                Console.WriteLine("\n");
             }
         }
         public static void MainMenu(MySqlConnection con)
@@ -127,6 +135,13 @@ namespace BrentERP
                     else if (parseinput == 8)
                     {
                         PrintGeneralLedger();
+                        Console.ReadKey();
+                    }
+
+                    else if (parseinput == 9)
+                    {
+                        Console.WriteLine("Printing Journal Ledger...");
+                        ViewJournalLedger(con);
                         Console.ReadKey();
                     }
 
@@ -250,7 +265,7 @@ namespace BrentERP
                         {
                             Console.WriteLine("Here is the created journal entry: \n");
                             var db = new BrentDB();
-                            db.AddJournalEntry(con, je.EntryToList(je));
+                            db.AddJournalEntry(con, je.EntryToList());
                             je.PrintJE();
                             JElinecreationsuccess = true;
                         }

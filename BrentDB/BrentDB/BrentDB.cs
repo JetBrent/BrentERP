@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using System.Reflection.PortableExecutable;
 
 namespace BrentSQLDB
 {
@@ -52,7 +53,7 @@ namespace BrentSQLDB
             return con;
         }
 
-        public List<object[]> ReadAllFromDatabase(MySqlConnection con, string table)
+        public List<object[]> ReadAllFromDatabase(MySqlConnection con, string table) // Reads all the records from an input table an returns a list of arrays
         {
             con.Open();
             table = table.ToLower();
@@ -109,12 +110,19 @@ namespace BrentSQLDB
         public void AddJournalEntry(MySqlConnection con, List<object[]> journalentry)
         {
             con.Open();
-            for (int i=0; i<=journalentry.Count; i++)
+            for (int i=0; i<journalentry.Count; i++)
             {
                 string insertentry = string.Format("INSERT INTO journal_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
-                "VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')",
+                "VALUES ('{0}', '{1}', '{2}', {3}, '{4}', '{5}', '{6}')",
                 journalentry[i][0], journalentry[i][1], journalentry[i][2], journalentry[i][3], journalentry[i][4], journalentry[i][5], journalentry[i][6]);
                 MySqlCommand cmd = new MySqlCommand(insertentry, con);
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.RecordsAffected <= 0)
+                    {
+                        Console.WriteLine($"Failed to insert journal entry no. {journalentry[0][0]}.");
+                    }
+                }
             }
             con.Close();
             Console.WriteLine($"Journal Entry Number {journalentry[0][0]} was successfully added.");
