@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using MySqlX.XDevAPI.Relational;
 using System.Reflection.PortableExecutable;
 
 namespace BrentSQLDB
@@ -85,7 +86,7 @@ namespace BrentSQLDB
             con.Close();
             return dblines;
         }
-        public List<object[]> QueryDB(MySqlConnection con, string table, string column, string condition )
+        public List<object[]> QueryDatabaseOnCondition(MySqlConnection con, string table, string column, string condition )
         {
             con.Open();
             string querydb = string.Format("SELECT * FROM {0} WHERE {1} = '{2}'", table, column, condition);
@@ -109,7 +110,7 @@ namespace BrentSQLDB
             {
                 Console.WriteLine($"Query for {condition} has failed.");
                 con.Close();
-                return null;
+                return dblines;
             }
 
             con.Close();
@@ -148,15 +149,65 @@ namespace BrentSQLDB
                 journalentry[i][0], journalentry[i][1], journalentry[i][2], journalentry[i][3], journalentry[i][4], journalentry[i][5], journalentry[i][6]);
                 MySqlCommand cmd = new MySqlCommand(insertentry, con);
             }
+            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry[0][0]);
+            MySqlCommand cmd2 = new MySqlCommand(deleteentry, con);
+            con.Close();
+            Console.WriteLine($"Journal Entry Number {journalentry[0][0]} was successfully posted.");
+            Console.ReadKey();
+        }
 
-            for (int i = 0; i <= journalentry.Count; i++)
+        public void DeleteSavedJournalEntry(MySqlConnection con, string journalentry)
+        {
+            con.Open();
+            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry);
+            MySqlCommand cmd = new MySqlCommand(deleteentry, con);
+            using (MySqlDataReader reader = cmd.ExecuteReader())
             {
-                string insertentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry[0][0]);
-                MySqlCommand cmd = new MySqlCommand(insertentry, con);
+                if (reader.RecordsAffected > 0)
+                {
+                    Console.WriteLine($"Journal Entry Number {journalentry} was successfully deleted from journal ledger.");
+
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to delete journal entry no. {journalentry}. Journal entry is not found in the journal ledger.");
+                }
             }
             con.Close();
-            Console.WriteLine($"Journal Entry Number {journalentry[0][0]} was successfully added.");
-            Console.ReadKey();
+        }
+
+        public int GetUniqueDocumentNumber(MySqlConnection con)
+        {
+            con.Open(); //Search for the latest document number in the journal ledger 
+            string selectentries = "SELECT document_number FROM journal_ledger ORDER BY document_number DESC LIMIT 1";
+            MySqlCommand cmd = new MySqlCommand(selectentries, con);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            int journaldocumentnumber = 0;
+            while (reader.Read())
+            {
+                string document_number = reader.GetString("document_number");
+                bool booldocumentnumber = Int32.TryParse(document_number, out journaldocumentnumber);
+            }
+            con.Close(); //MySqlDataReader must first be closed to initiate another SQL command
+
+            con.Open(); //Search for the latest document number in the general ledger 
+            selectentries = "SELECT document_number FROM general_ledger ORDER BY document_number DESC LIMIT 1";
+            cmd = new MySqlCommand(selectentries, con);
+            reader = cmd.ExecuteReader();
+            int generaldocumentnumber = 0;
+            while (reader.Read()) 
+            {
+                string document_number = reader.GetString("document_number");
+                bool booldocumentnumber = Int32.TryParse(document_number, out generaldocumentnumber);
+            }
+            con.Close();
+            if (journaldocumentnumber == 0) journaldocumentnumber = 1;
+            else journaldocumentnumber++;
+
+            if (journaldocumentnumber == generaldocumentnumber) journaldocumentnumber++; // Compares the latest document number from the journal ledger and from the general ledger. If they are equal, the journal ledger document number is incremented
+
+
+            return journaldocumentnumber;
         }
     }
 }

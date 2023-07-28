@@ -50,12 +50,10 @@ namespace BrentERP
             }
             if (DebitAmount == CreditAmount)
             {
-                Console.WriteLine($"Document Number {DocumentNumber} is equal!");
                 return true;
             }
             else
             {
-                Console.WriteLine($"Unbalanced Document Number {DocumentNumber}. \nDebit amount is : {DebitAmount}. Credit Amount is {CreditAmount}.");
                 return false;
             } 
         }
@@ -84,13 +82,10 @@ namespace BrentERP
             foreach (JournalEntryLine line in JournalEntryLines) numberoflines++;
             if (numberoflines < 1)
             {
-                Console.WriteLine($"The Document Number {DocumentNumber} has only 1 line!");
                 return false;
             }
             else
             {
-                Console.WriteLine($"The Document Number {DocumentNumber} has {numberoflines} lines.");
-                Console.WriteLine();
                 return true;
             }
         }
@@ -115,14 +110,25 @@ namespace BrentERP
             return list;
         }
         
-        public void InsertPostDate()
+        public List<object[]> PostJournalEntry()
         {
             EntryPostDate = DateTime.Now;
             foreach (JournalEntryLine line in JournalEntryLines)
             {
                 line.LinePostDate = EntryPostDate;
             }
-
+            var balanced = CheckEqual();
+            var complete = CheckJELines();
+            if (complete && balanced)
+            {
+                var list = this.EntryToList();
+                return list;
+            }
+            else
+            {
+                Console.WriteLine($"Journal Entry Number {DocumentNumber} is either unbalanced or incomplete. Please recheck the journal entry.");
+                return null;
+            }
         }
     }
 }

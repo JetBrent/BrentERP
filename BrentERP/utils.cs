@@ -30,37 +30,87 @@ namespace BrentERP
 
         public static void PrintGeneralLedger()
         {
-            var db = new BrentDB();
-            var con = ConnectToDB();
-            string table = "general_ledger";
-            var result = db.ReadAllFromDatabase(con, table);
-            foreach (var item in result)
+            try
             {
-                Console.WriteLine(item);
+                var db = new BrentDB();
+                var con = ConnectToDB();
+                var gl = db.ReadAllFromDatabase(con, "general_ledger");
+                foreach (var line in gl)
+                {
+                    Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
+
+                    }
+                    Console.WriteLine("");
+                }
+                Console.WriteLine("Finished printing the general ledger.");
             }
-            Console.WriteLine("Finished printing the general ledger.");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred on printing the general ledger: {ex.Message}");
+            }
+
         }
 
         public static void ViewJournalLedger(MySqlConnection con)
         {
-            Console.WriteLine("\nPrinting Journal Ledger...\n");
-            var db = new BrentDB();
-            var jl = db.ReadAllFromDatabase(con, "journal_ledger");
-            foreach (var line in jl)
+            try
             {
-
-                Console.Write("|");
-                foreach (var item in line)
+                Console.WriteLine("\nPrinting Journal Ledger...\n");
+                var db = new BrentDB();
+                var jl = db.ReadAllFromDatabase(con, "journal_ledger");
+                foreach (var line in jl)
                 {
-                    Console.Write(item);
                     Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
 
+                    }
+                    Console.WriteLine("");
                 }
-                Console.WriteLine("");
+                Console.WriteLine("\nJournal Ledger Printing Successful!\n");
+                Console.WriteLine("Press enter to return to the main menu...");
             }
-            Console.WriteLine("\nJournal Ledger Printing Successful!\n");
-            Console.WriteLine("Press enter to continue...");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred on printing the journal ledger: {ex.Message}");
+            }
+
         }
+
+        public static void DeleteJournalLedgerEntry(MySqlConnection con)
+        {
+            try
+            {
+                Console.WriteLine("Please input the document number you want to edit.");
+                string response = "";
+                while (true)
+                {
+                    response = Console.ReadLine();
+                    if (response == null)
+                    {
+                        Console.WriteLine("Please enter a valid journal entry.");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                var db = new BrentDB();
+                db.DeleteSavedJournalEntry(con, response);
+                Console.WriteLine("\nPress enter to return to the main menu...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred on deleting journal entry {ex.Message}");
+            }
+
+        } 
         public static void MainMenu(MySqlConnection con)
         {
             while (true)
@@ -79,6 +129,7 @@ namespace BrentERP
                 7. Export Trial Balance
                 8. View General Ledger
                 9. View Journal Ledger
+                10. Delete Saved Journal Entry
                 
                 Press q to quit.
 
@@ -151,6 +202,15 @@ namespace BrentERP
                         Console.ReadKey();
                         Console.Clear();
                     }
+                    else if (parseinput == 10)
+                    {
+
+                        Console.Clear();
+                        DeleteJournalLedgerEntry(con);
+                        Console.ReadKey();
+                        Console.Clear();
+
+                    }
 
                     else
                     {
@@ -169,24 +229,14 @@ namespace BrentERP
 
         public static void CreateJE(MySqlConnection con)
         {
+            var db = new BrentDB();
             try
             {
                 bool JEcreationsuccess = false;
                 while (!JEcreationsuccess)
                 {
-                    bool docnumparse = false;
-                    int intdocnum = 0;
-                    Console.WriteLine("Type the journal entry number of the new journal entry.");
-                    while (!docnumparse)
-                    {
-                        var docnum = Console.ReadLine(); //TODO: Replace with code to add value taken from last JE number from SQL JE database
-                        docnumparse = Int32.TryParse(docnum, out intdocnum);
-                        if (!docnumparse)
-                        {
-                            Console.WriteLine("Invalid journal entry number number. Please input a valid JE number.");
-                        }
-                    }
-                    Console.WriteLine("Please input the journal entry description.");
+                    int intdocnum = db.GetUniqueDocumentNumber(con);
+                    Console.WriteLine($"Please input the journal entry description for journal entry number {intdocnum}.");
                     string jedesc;
                     while (true)
                     {
@@ -270,9 +320,8 @@ namespace BrentERP
                         }
                         else
                         {
-                            Console.WriteLine("Here is the created journal entry: \n");
-                            var db = new BrentDB();
                             db.AddJournalEntry(con, je.EntryToList());
+                            Console.WriteLine("Here is the created journal entry: \n");
                             je.PrintJE();
                             JElinecreationsuccess = true;
                         }
