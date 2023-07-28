@@ -64,7 +64,7 @@ namespace BrentERP
         {
             line.LineAddDate = EntryAddDate;
             line.LinePostDate = EntryPostDate; // Post date would be added using the InsertPostDate method
-            line.LineDesc = Description;
+            line.LineDescription = Description;
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
         }
@@ -73,7 +73,7 @@ namespace BrentERP
         {
             var line = new JournalEntryLine(accountNumber, drCr, amount);
             line.LineAddDate = EntryAddDate;
-            line.LineDesc = Description;
+            line.LineDescription = Description;
             line.LinePostDate = EntryPostDate; // Post date would be added using the InsertPostDate method
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
@@ -100,7 +100,7 @@ namespace BrentERP
             Console.WriteLine("----------------------------------------------------------------------------");
             foreach (JournalEntryLine j in JournalEntryLines)
             {
-                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.LineAccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDesc);
+                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.LineAccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDescription);
             }
         }
 

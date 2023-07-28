@@ -5,47 +5,56 @@ namespace BrentSQLDB
 {
     public class BrentDB
     {
-        public void Init(string server, string uid, string password)
+        public void Init(string server, string uid, string password) // Intializing the database and tables needed for the functions
         {
-            string connstring = string.Format("server={0};uid={1};password={2};",server, uid, password);
-            MySqlConnection con = new MySqlConnection(connstring);
-            con.ConnectionString = connstring;
+            try
+            {
+                Console.WriteLine("BrentDB Database Initialization has started.");
 
-            con.Open();
-            string dbcreate = "CREATE DATABASE IF NOT EXISTS brentdb";
-            MySqlCommand cmd = new MySqlCommand(dbcreate, con);
-            cmd.ExecuteNonQuery();
-            Console.WriteLine("Database Created");
+                string connstring = string.Format("server={0};uid={1};password={2};", server, uid, password);
+                MySqlConnection con = new MySqlConnection(connstring);
+                con.ConnectionString = connstring;
 
-            string usedb = "USE brentdb";
-            cmd = new MySqlCommand(usedb, con);
-            cmd.ExecuteNonQuery();
-            Console.WriteLine("Database brentdb Used");
+                con.Open();
+                string dbcreate = "CREATE DATABASE IF NOT EXISTS brentdb";
+                MySqlCommand cmd = new MySqlCommand(dbcreate, con);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("BrentDB Database has been created...");
 
-            string jlcreate = "CREATE TABLE IF NOT EXISTS " +
-                "journal_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
-                "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
-            cmd = new MySqlCommand(jlcreate, con);
-            cmd.ExecuteNonQuery();
-            Console.WriteLine("SL Done");
+                string usedb = "USE brentdb";
+                cmd = new MySqlCommand(usedb, con);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Database Connection Successful. Creating Tables...");
 
-            string glcreate = "CREATE TABLE IF NOT EXISTS " +
-                "general_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
-                "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
-            cmd = new MySqlCommand(glcreate, con);
-            cmd.ExecuteNonQuery();
-            Console.WriteLine("GL Done");
+                string jlcreate = "CREATE TABLE IF NOT EXISTS " +
+                    "journal_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
+                    "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
+                cmd = new MySqlCommand(jlcreate, con);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Journal Table Initialized...");
 
-            string accountcreate = "CREATE TABLE IF NOT EXISTS account_code(account_name VARCHAR(256), account_number VARCHAR(256) PRIMARY KEY)";
-            cmd = new MySqlCommand(accountcreate, con);
-            cmd.ExecuteNonQuery();
-            Console.WriteLine("Account Code Done");
-            con.Close();
+                string glcreate = "CREATE TABLE IF NOT EXISTS " +
+                    "general_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
+                    "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
+                cmd = new MySqlCommand(glcreate, con);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("General Ledger Table Initialized...");
 
-            Console.WriteLine("Init finished.");
+                string accountcreate = "CREATE TABLE IF NOT EXISTS account_code(account_name VARCHAR(256), account_number VARCHAR(256) PRIMARY KEY)";
+                cmd = new MySqlCommand(accountcreate, con);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine("Account Code Table Initialized...");
+                con.Close();
+
+                Console.WriteLine("BrentERP Database Initialization Successful.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception has occurred on Databnase Initialization : {ex.Message}");
+            }
         }
         
-        public MySqlConnection ConnectToDB(string server, string uid, string password)
+        public MySqlConnection ConnectToDB(string server, string uid, string password) // Connection to database will be successful if database initialization was successful
         {
             string connstring = string.Format("server={0};uid={1};password={2};database=brentdb;", server, uid, password);
             MySqlConnection con = new MySqlConnection(connstring);

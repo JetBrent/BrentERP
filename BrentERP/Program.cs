@@ -7,8 +7,7 @@ namespace BrentERP
         static void Main(string[] args)
         {
             Utils.InitDB();
-            var con = Utils.ConnectToDB();
-            Utils.MainMenu(con);
+            Utils.MainMenu(Utils.ConnectToDB());
             Console.ReadKey();
 
 

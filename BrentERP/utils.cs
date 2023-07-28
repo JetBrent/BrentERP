@@ -16,6 +16,9 @@ namespace BrentERP
         {
             var db = new BrentDB();
             db.Init("localhost","root","MYBRENT.sql!");
+            Console.WriteLine("Press enter to continue to the main program...");
+            Console.ReadKey();
+            Console.Clear();
         }
 
         public static MySqlConnection ConnectToDB()
@@ -40,6 +43,7 @@ namespace BrentERP
 
         public static void ViewJournalLedger(MySqlConnection con)
         {
+            Console.WriteLine("\nPrinting Journal Ledger...\n");
             var db = new BrentDB();
             var jl = db.ReadAllFromDatabase(con, "journal_ledger");
             foreach (var line in jl)
@@ -52,8 +56,10 @@ namespace BrentERP
                     Console.Write("|");
 
                 }
-                Console.WriteLine("\n");
+                Console.WriteLine("");
             }
+            Console.WriteLine("\nJournal Ledger Printing Successful!\n");
+            Console.WriteLine("Press enter to continue...");
         }
         public static void MainMenu(MySqlConnection con)
         {
@@ -140,9 +146,10 @@ namespace BrentERP
 
                     else if (parseinput == 9)
                     {
-                        Console.WriteLine("Printing Journal Ledger...");
+                        Console.Clear();
                         ViewJournalLedger(con);
                         Console.ReadKey();
+                        Console.Clear();
                     }
 
                     else

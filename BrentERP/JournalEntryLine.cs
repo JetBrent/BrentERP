@@ -14,7 +14,7 @@ namespace BrentERP
         public decimal Amount { get; set; }
         public DateTime? LineAddDate { get; set; }
         public DateTime? LinePostDate { get; set; }
-        public string? LineDesc { get; set; }
+        public string? LineDescription { get; set; }
         public int? LineDocumentNumber { get; set; }
 
         // Nullable properties are to be provided by the journal entry once posted
@@ -29,7 +29,7 @@ namespace BrentERP
 
         public object[] LineToArray(JournalEntryLine line)
         {
-            var returnarray = new object[] {line.LineDocumentNumber, line.LineAccountNumber, line.DrCr, line.Amount, line.LineAddDate.ToString(), line.LinePostDate.ToString(), line.LineDesc };
+            var returnarray = new object[] {line.LineDocumentNumber, line.LineAccountNumber, line.DrCr, line.Amount, line.LineAddDate.ToString(), line.LinePostDate.ToString(), line.LineDescription };
             return returnarray;
         }
     }
