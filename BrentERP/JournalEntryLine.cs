@@ -29,7 +29,11 @@ namespace BrentERP
 
         public object[] LineToArray(JournalEntryLine line)
         {
-            var returnarray = new object[] {line.LineDocumentNumber, line.LineAccountNumber, line.DrCr, line.Amount, line.LineAddDate.ToString(), line.LinePostDate.ToString(), line.LineDescription };
+            DateTime? addDate = line.LineAddDate;
+            string formatAddDate = addDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            DateTime? postDate = line.LinePostDate;
+            string formatPostDate = postDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            var returnarray = new object[] {line.LineDocumentNumber, line.LineAccountNumber, line.DrCr, line.Amount, formatAddDate, formatPostDate, line.LineDescription };
             return returnarray;
         }
     }

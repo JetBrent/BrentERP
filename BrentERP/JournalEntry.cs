@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace BrentERP
         public JournalEntry(int documentNumber, string description)
         {
             EntryAddDate = DateTime.Now;
-            EntryPostDate = DateTime.Now; // Post date would be added using the InsertPostDate method
+            EntryPostDate = null; // Post date would be added using the InsertPostDate method
             DocumentNumber = documentNumber;
             Description = description;
             var linestart = new List<JournalEntryLine> { };
@@ -110,7 +111,7 @@ namespace BrentERP
             return list;
         }
         
-        public List<object[]> PostJournalEntry()
+        public List<object[]> PrepareEntryForPosting() // TODO: Implement conversion of datetimes
         {
             EntryPostDate = DateTime.Now;
             foreach (JournalEntryLine line in JournalEntryLines)
@@ -128,6 +129,21 @@ namespace BrentERP
             {
                 Console.WriteLine($"Journal Entry Number {DocumentNumber} is either unbalanced or incomplete. Please recheck the journal entry.");
                 return null;
+            }
+        }
+
+        public JournalEntry(List<object[]> je) // To be used for posting or when the entry was read from the database and casted to a JournalEntry class
+        {
+            EntryPostDate = DateTime.Now;
+            DocumentNumber = int.Parse(je[0][0].ToString()); // Read Only Data Type was detected. The value was first converted to string before it was parsed
+            Description = je[0][6].ToString();
+            var linestart = new List<JournalEntryLine> { };
+            JournalEntryLines = linestart;
+            for (int i = 0; i < je.Count; i++)
+            {
+                var acc = new AccountCode(int.Parse(je[i][1].ToString()), ""); // TODO: Implement registration of account code to SQL database and apply the application of the account code here
+                var line = new JournalEntryLine(acc, je[i][2].ToString(), decimal.Parse(je[i][3].ToString()));
+                linestart.Add(line);
             }
         }
     }

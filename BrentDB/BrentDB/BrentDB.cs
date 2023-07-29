@@ -29,14 +29,14 @@ namespace BrentSQLDB
 
                 string jlcreate = "CREATE TABLE IF NOT EXISTS " +
                     "journal_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
-                    "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
+                    "amount DECIMAL(65,5) NOT NULL, add_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, post_date DATETIME DEFAULT NULL, description VARCHAR(1000) NOT NULL )";
                 cmd = new MySqlCommand(jlcreate, con);
                 cmd.ExecuteNonQuery();
                 Console.WriteLine("Journal Table Initialized...");
 
                 string glcreate = "CREATE TABLE IF NOT EXISTS " +
                     "general_ledger(id INT PRIMARY KEY AUTO_INCREMENT, document_number VARCHAR(256) NOT NULL, account_number VARCHAR(256) NOT NULL, drcr VARCHAR(10) NOT NULL, " +
-                    "amount DECIMAL(65,5) NOT NULL, add_date VARCHAR(100) NOT NULL, post_date VARCHAR(100) NOT NULL, description VARCHAR(1000) NOT NULL )";
+                    "amount DECIMAL(65,5) NOT NULL, add_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, post_date DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, description VARCHAR(1000) NOT NULL )";
                 cmd = new MySqlCommand(glcreate, con);
                 cmd.ExecuteNonQuery();
                 Console.WriteLine("General Ledger Table Initialized...");
@@ -63,7 +63,7 @@ namespace BrentSQLDB
             return con;
         }
 
-        public List<object[]> ReadAllFromDatabase(MySqlConnection con, string table) // Reads all the records from an input table an returns a list of arrays
+        public List<object[]> ReadAllFromTable(MySqlConnection con, string table) // Reads all the records from an input table an returns a list of arrays
         {
             con.Open();
             table = table.ToLower();
@@ -86,7 +86,7 @@ namespace BrentSQLDB
             con.Close();
             return dblines;
         }
-        public List<object[]> QueryDatabaseOnCondition(MySqlConnection con, string table, string column, string condition )
+        public List<object[]> QueryTableOnCondition(MySqlConnection con, string table, string column, string condition )
         {
             con.Open();
             string querydb = string.Format("SELECT * FROM {0} WHERE {1} = '{2}'", table, column, condition);
@@ -99,8 +99,8 @@ namespace BrentSQLDB
                 string account_number = reader.GetString("account_number");
                 string drcr = reader.GetString("drcr");
                 decimal amount = reader.GetDecimal("amount");
-                string add_date = reader.GetString("add_date");
-                string post_date = reader.GetString("post_date");
+                DateTime add_date = DateTime.Parse(reader.GetString("add_date"));
+                DateTime post_date = DateTime.Parse(reader.GetString("post_date"));
                 string description = reader.GetString("description");
                 var line = new object[] { document_number, account_number, drcr, amount, add_date, post_date, description };
                 dblines.Add(line);
@@ -139,7 +139,7 @@ namespace BrentSQLDB
             Console.ReadKey();
         }
 
-        public void PostJournalEntry(MySqlConnection con, List<object[]> journalentry)
+        public void PostJournalEntryToGeneralLedger(MySqlConnection con, List<object[]> journalentry)
         {
             con.Open();
             for (int i = 0; i <= journalentry.Count; i++)
@@ -159,7 +159,7 @@ namespace BrentSQLDB
         public void DeleteSavedJournalEntry(MySqlConnection con, string journalentry)
         {
             con.Open();
-            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry);
+            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry); // Journal Entries posted to the General Ledger cannot be deleted.
             MySqlCommand cmd = new MySqlCommand(deleteentry, con);
             using (MySqlDataReader reader = cmd.ExecuteReader())
             {

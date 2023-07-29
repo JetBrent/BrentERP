@@ -10,7 +10,7 @@ using MySql.Data.MySqlClient;
 
 namespace BrentERP
 {
-    internal static class Utils
+    internal static class BrentUtils
     {
         public static void InitDB() 
         {
@@ -34,7 +34,7 @@ namespace BrentERP
             {
                 var db = new BrentDB();
                 var con = ConnectToDB();
-                var gl = db.ReadAllFromDatabase(con, "general_ledger");
+                var gl = db.ReadAllFromTable(con, "general_ledger");
                 foreach (var line in gl)
                 {
                     Console.Write("|");
@@ -52,7 +52,6 @@ namespace BrentERP
             {
                 Console.WriteLine($"Exception occurred on printing the general ledger: {ex.Message}");
             }
-
         }
 
         public static void ViewJournalLedger(MySqlConnection con)
@@ -61,7 +60,7 @@ namespace BrentERP
             {
                 Console.WriteLine("\nPrinting Journal Ledger...\n");
                 var db = new BrentDB();
-                var jl = db.ReadAllFromDatabase(con, "journal_ledger");
+                var jl = db.ReadAllFromTable(con, "journal_ledger");
                 foreach (var line in jl)
                 {
                     Console.Write("|");
@@ -111,127 +110,13 @@ namespace BrentERP
             }
 
         } 
-        public static void MainMenu(MySqlConnection con)
-        {
-            while (true)
-            {
-                Console.WriteLine("""
-                ******* MAIN MENU *******
-
-                Choose an option:
-
-                1. Create a Journal Entry   
-                2. Post a Journal Entry
-                3. View Journal Entry
-                4. View GL Accounts
-                5. Register GL Account
-                6. Export Journal Entry Listing
-                7. Export Trial Balance
-                8. View General Ledger
-                9. View Journal Ledger
-                10. Delete Saved Journal Entry
-                
-                Press q to quit.
-
-                *************************
-                """);
-                string userinput = Console.ReadLine();
-                var boolparseinput = Int32.TryParse(userinput, out var parseinput);
-                if(userinput != null)
-                {
-                    if (userinput.ToLower() == "q" || userinput.ToUpper() == "Q")
-                    {
-                        Console.Clear();
-                        Console.WriteLine("Exiting application...");
-                        break;
-                    }
-
-                    else if (parseinput == 1)
-                    {
-                        Console.Clear();
-                        CreateJE(con);
-                        Console.WriteLine("Press enter to continue...");
-                        Console.ReadKey();
-                        Console.Clear();
-                    }
-
-                    else if (parseinput == 2)
-                    {
-                        continue; //TODO: Implement posting of journal entry from JE listing from SL of non posted JEs
-                    }
-
-                    else if (parseinput == 3)
-                    {
-                        //TODO: Implement of either posted or not yet posted journal entry
-                        Console.WriteLine("Viewing journal entry...");
-                        continue;
-                    }
-
-                    else if (parseinput == 4)
-                    {
-                        Console.WriteLine("Viewing GL accounts...");
-                        continue;
-                    }
-
-                    else if (parseinput == 5)
-                    {
-                        RegisterAccountCode();
-                        //TODO: Registering GL account to SQL database
-                    }
-
-                    else if (parseinput == 6)
-                    {
-                        continue; //TODO: Implement export of journal entry listing here
-                    }
-
-                    else if (parseinput == 7)
-                    {
-                        continue; //TODO: Implement export of trial balance here
-                    }
-
-                    else if (parseinput == 8)
-                    {
-                        PrintGeneralLedger();
-                        Console.ReadKey();
-                    }
-
-                    else if (parseinput == 9)
-                    {
-                        Console.Clear();
-                        ViewJournalLedger(con);
-                        Console.ReadKey();
-                        Console.Clear();
-                    }
-                    else if (parseinput == 10)
-                    {
-
-                        Console.Clear();
-                        DeleteJournalLedgerEntry(con);
-                        Console.ReadKey();
-                        Console.Clear();
-
-                    }
-
-                    else
-                    {
-                        Console.Clear();
-                        continue;
-                    }
-                }
-                else
-                {
-                    Console.Clear();
-                    continue;
-                }
-
-            }
-        }
 
         public static void CreateJE(MySqlConnection con)
         {
-            var db = new BrentDB();
+
             try
             {
+                var db = new BrentDB();
                 bool JEcreationsuccess = false;
                 while (!JEcreationsuccess)
                 {
@@ -330,69 +215,88 @@ namespace BrentERP
 
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"Exception has occured on creating journal entry: {e}");
+                Console.WriteLine($"Exception has occured on creating journal entry: {ex}");
 
             }
             // TODO: Implement Create JE function
         }
 
-        public static void PostJE(JournalEntry je)
+        public static void PostJE(MySqlConnection con)
         {
-            bool amountequal = je.CheckEqual();
-            bool balancedjelines = je.CheckJELines();
-            if (amountequal && balancedjelines)
+            try
             {
-                Console.WriteLine("Posting Completed!");
-                // TODO: Implement function to post journal entry to SQL database
+                var db = new BrentDB();
+                Console.WriteLine("Please input the journal entry number that you want to post.");
+                var response = Console.ReadLine();
+                var result = db.QueryTableOnCondition(con, "journal_ledger", "document_number", response);
+                if (result != null)
+                {
+                    var je = new JournalEntry(result);
+                    var postje = je.PrepareEntryForPosting();
+                    if (postje != null)
+                    {
+                        db.PostJournalEntryToGeneralLedger(con, postje);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Journal Entry Number {je.DocumentNumber} is either unbalanced or incomplete. Please recheck the journal entry.");
+                    }
+                }
+                else { Console.WriteLine("Invalid document number input. Please try again."); }
             }
-            else
+            catch (Exception ex) 
             {
-                Console.WriteLine("Posting will not procede due to erroneous journal entry.");
+                Console.WriteLine($"Exception has occured on posting journal entry: {ex}");
             }
-
         }
 
         public static void RegisterAccountCode()
         {
-            Console.WriteLine("Please enter the account number of the accountcode.");
-            bool accountnumbersuccess = false;
-            int accountnumber = 0;
-            while (!accountnumbersuccess)
+            try
             {
-                var accountnumberinput = Console.ReadLine();
-                var accnotryparse = Int32.TryParse(accountnumberinput, out accountnumber);
-                if (accnotryparse)
+                Console.WriteLine("Please enter the account number of the accountcode.");
+                bool accountnumbersuccess = false;
+                int accountnumber = 0;
+                while (!accountnumbersuccess)
                 {
-                    accountnumbersuccess = true;
+                    var accountnumberinput = Console.ReadLine();
+                    var accnotryparse = Int32.TryParse(accountnumberinput, out accountnumber);
+                    if (accnotryparse)
+                    {
+                        accountnumbersuccess = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please enter a valid account number!");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Please enter a valid account number!");
-                }
-            }
 
-            Console.WriteLine($"Please enter the account name of account number: {accountnumber}");
-            bool accountnamesuccess = false;
-            string accountname = "";
-            while(!accountnamesuccess)
+                Console.WriteLine($"Please enter the account name of account number: {accountnumber}");
+                bool accountnamesuccess = false;
+                string accountname = "";
+                while (!accountnamesuccess)
+                {
+                    accountname = Console.ReadLine();
+                    if (accountname == null)
+                    {
+                        Console.WriteLine("Please enter a valid account name! The account name cannot be null!");
+                    }
+                    else
+                    {
+                        accountnamesuccess = true;
+                    }
+                }
+                var acccode = new AccountCode(accountnumber, accountname);
+                // TODO: Implement registration of account code to SQL database here
+                Console.WriteLine($"Registration of account number: {accountnumber} with the account name {accountname} is successful!");
+            }
+            catch ( Exception ex )
             {
-                accountname = Console.ReadLine();
-                if (accountname == null)
-                {
-                    Console.WriteLine("Please enter a valid account name! The account name cannot be null!");
-                }
-                else
-                {
-                    accountnamesuccess = true;
-                }
+                Console.WriteLine($"Exception has occured on registering account code: {ex}");
             }
-            var acccode = new AccountCode(accountnumber, accountname);
-            // TODO: Implement registration of account code to SQL database here
-            Console.WriteLine($"Registration of account number: {accountnumber} with the account name {accountname} is successful!");
-
-
+  
         }
     }
 }
