@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,13 +29,12 @@ namespace BrentERP
             return con;
         }
 
-        public static void PrintGeneralLedger()
+        public static void PrintGeneralLedger(MySqlConnection con)
         {
             try
             {
                 var db = new BrentDB();
-                var con = ConnectToDB();
-                var gl = db.ReadAllFromTable(con, "general_ledger");
+                var gl = db.ReadAllEntriesFromGeneralLedger(con);
                 foreach (var line in gl)
                 {
                     Console.Write("|");
@@ -54,13 +54,92 @@ namespace BrentERP
             }
         }
 
+
+        public static void RegisterAccountCode(MySqlConnection con)
+        {
+            try
+            {
+                var db = new BrentDB();
+                Console.WriteLine("Please input the account number you want to register.");
+                bool accountunique = false;
+                int accountinput = 0;
+                while (!accountunique)
+                {
+                    var response = Console.ReadLine();
+                    bool intaccount = Int32.TryParse(response, out accountinput);
+                    if (!intaccount)
+                    {
+
+                        Console.WriteLine("Invalid account input. Please input a number");
+                    }
+                    else
+                    {
+                        var verifyaccount = db.QueryAccountCode(con, accountinput);
+                        if (accountinput.ToString() == verifyaccount)
+                        {
+                            Console.WriteLine("Account number already exists! Please try again.");
+                        }
+                        else
+                        {
+                            accountunique = true;
+                        }
+                    }
+                }
+                Console.WriteLine($"Please input the account name for account number: {accountinput}");
+                bool accountnamesuccess = false;
+                string accountname = "";
+                while (!accountnamesuccess)
+                {
+                    accountname = Console.ReadLine();
+                    if (accountname == null)
+                    {
+                        Console.WriteLine("Please input a valid account name!");
+                    }
+                    else
+                    {
+                        accountnamesuccess = true;
+                    }
+                }
+                db.AddGLAccount(con, accountinput, accountname);
+                Console.WriteLine("Account Registration Finished.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception has occured on registering account code {ex}");
+            }
+        }
+        public static void PrintRegisteredAccountCodes(MySqlConnection con)
+        {
+            try
+            {
+                Console.WriteLine("The registered account codes are listed below: \n");
+                var db = new BrentDB();
+                var acc = db.ReadAllRegisteredAccountCodes(con);
+                foreach (var line in acc)
+                {
+                    Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
+
+                    }
+                    Console.WriteLine("");
+                }
+                Console.WriteLine("Finished printing the registered account codes.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception has occured on verifying account code {ex}");
+            }
+        }
         public static void ViewJournalLedger(MySqlConnection con)
         {
             try
             {
                 Console.WriteLine("\nPrinting Journal Ledger...\n");
                 var db = new BrentDB();
-                var jl = db.ReadAllFromTable(con, "journal_ledger");
+                var jl = db.ReadAllEntriesFromJournalLedger(con);
                 foreach (var line in jl)
                 {
                     Console.Write("|");
@@ -158,7 +237,7 @@ namespace BrentERP
                             // Implement the ff: If accountinput not in SQL database, continue;
                         }
 
-                        AccountCode accountno = new AccountCode(accountinput, ""); //TODO: Implement get of account description from account code database
+                        GeneralLedgerAccount accountno = new GeneralLedgerAccount(accountinput, ""); //TODO: Implement get of account description from account code database
 
                         var drcrcheck = false;
                         var drcr = "";
@@ -230,11 +309,11 @@ namespace BrentERP
                 var db = new BrentDB();
                 Console.WriteLine("Please input the journal entry number that you want to post.");
                 var response = Console.ReadLine();
-                var result = db.QueryTableOnCondition(con, "journal_ledger", "document_number", response);
+                var result = db.QueryFromJournalLedger(con, "document_number", response);
                 if (result != null)
                 {
                     var je = new JournalEntry(result);
-                    var postje = je.PrepareEntryForPosting();
+                    var postje = je.PrepareEntryForPosting(); // Performs Check Equal and Check Balance checks and converts the Journal Entry class to List<object> for posting to the general_ledger table
                     if (postje != null)
                     {
                         db.PostJournalEntryToGeneralLedger(con, postje);
@@ -250,53 +329,6 @@ namespace BrentERP
             {
                 Console.WriteLine($"Exception has occured on posting journal entry: {ex}");
             }
-        }
-
-        public static void RegisterAccountCode()
-        {
-            try
-            {
-                Console.WriteLine("Please enter the account number of the accountcode.");
-                bool accountnumbersuccess = false;
-                int accountnumber = 0;
-                while (!accountnumbersuccess)
-                {
-                    var accountnumberinput = Console.ReadLine();
-                    var accnotryparse = Int32.TryParse(accountnumberinput, out accountnumber);
-                    if (accnotryparse)
-                    {
-                        accountnumbersuccess = true;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Please enter a valid account number!");
-                    }
-                }
-
-                Console.WriteLine($"Please enter the account name of account number: {accountnumber}");
-                bool accountnamesuccess = false;
-                string accountname = "";
-                while (!accountnamesuccess)
-                {
-                    accountname = Console.ReadLine();
-                    if (accountname == null)
-                    {
-                        Console.WriteLine("Please enter a valid account name! The account name cannot be null!");
-                    }
-                    else
-                    {
-                        accountnamesuccess = true;
-                    }
-                }
-                var acccode = new AccountCode(accountnumber, accountname);
-                // TODO: Implement registration of account code to SQL database here
-                Console.WriteLine($"Registration of account number: {accountnumber} with the account name {accountname} is successful!");
-            }
-            catch ( Exception ex )
-            {
-                Console.WriteLine($"Exception has occured on registering account code: {ex}");
-            }
-  
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using MySqlX.XDevAPI.Relational;
+using System.Data.Common;
 using System.Reflection.PortableExecutable;
 
 namespace BrentSQLDB
@@ -41,7 +42,7 @@ namespace BrentSQLDB
                 cmd.ExecuteNonQuery();
                 Console.WriteLine("General Ledger Table Initialized...");
 
-                string accountcreate = "CREATE TABLE IF NOT EXISTS account_code(account_name VARCHAR(256), account_number VARCHAR(256) PRIMARY KEY)";
+                string accountcreate = "CREATE TABLE IF NOT EXISTS account_code(account_number VARCHAR(256) PRIMARY KEY, account_name VARCHAR(256))";
                 cmd = new MySqlCommand(accountcreate, con);
                 cmd.ExecuteNonQuery();
                 Console.WriteLine("Account Code Table Initialized...");
@@ -63,11 +64,10 @@ namespace BrentSQLDB
             return con;
         }
 
-        public List<object[]> ReadAllFromTable(MySqlConnection con, string table) // Reads all the records from an input table an returns a list of arrays
+        public List<object[]> ReadAllEntriesFromJournalLedger(MySqlConnection con) // Reads all the records from an input table an returns a list of arrays
         {
             con.Open();
-            table = table.ToLower();
-            string selectentries = string.Format("SELECT * FROM {0}", table);
+            string selectentries = "SELECT * FROM journal_ledger";
             MySqlCommand cmd = new MySqlCommand(selectentries, con);
             MySqlDataReader reader = cmd.ExecuteReader();
             var dblines = new List<object[]>();
@@ -86,11 +86,54 @@ namespace BrentSQLDB
             con.Close();
             return dblines;
         }
-        public List<object[]> QueryTableOnCondition(MySqlConnection con, string table, string column, string condition )
+
+        public List<object[]> ReadAllEntriesFromGeneralLedger(MySqlConnection con) // Reads all the records from an input table an returns a list of arrays
         {
             con.Open();
-            string querydb = string.Format("SELECT * FROM {0} WHERE {1} = '{2}'", table, column, condition);
+            string selectentries = "SELECT * FROM general_ledger";
+            MySqlCommand cmd = new MySqlCommand(selectentries, con);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            var dblines = new List<object[]>();
+            while (reader.Read())
+            {
+                string document_number = reader.GetString("document_number");
+                string account_number = reader.GetString("account_number");
+                string drcr = reader.GetString("drcr");
+                decimal amount = reader.GetDecimal("amount");
+                string add_date = reader.GetString("add_date");
+                string post_date = reader.GetString("post_date");
+                string description = reader.GetString("description");
+                var line = new object[] { document_number, account_number, drcr, amount, add_date, post_date, description };
+                dblines.Add(line);
+            }
+            con.Close();
+            return dblines;
+        }
+
+        public List<object[]> ReadAllRegisteredAccountCodes(MySqlConnection con) // Reads all the registered account codes and returns a list of arrays
+        {
+            con.Open();
+            string selectentries = "SELECT * FROM account_code";
+            MySqlCommand cmd = new MySqlCommand(selectentries, con);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            var dblines = new List<object[]>();
+            while (reader.Read())
+            {
+                string account_name = reader.GetString("account_name");
+                string account_number = reader.GetString("account_number");
+                var line = new object[] { account_number, account_name };
+                dblines.Add(line);
+            }
+            con.Close();
+            return dblines;
+        }
+        public List<object[]> QueryFromJournalLedger(MySqlConnection con, string column, string condition)
+        {
+            con.Open();
+            string querydb = "SELECT * FROM journal_ledger WHERE @column = @condition";
             MySqlCommand cmd = new MySqlCommand(querydb, con);
+            cmd.Parameters.AddWithValue("@column", column);
+            cmd.Parameters.AddWithValue("@condition", condition);
             MySqlDataReader reader = cmd.ExecuteReader();
             var dblines = new List<object[]>();
             while (reader.Read())
@@ -117,21 +160,76 @@ namespace BrentSQLDB
             return dblines;
         }
 
+        public string QueryAccountCode(MySqlConnection con, int accountno)
+        {
+            con.Open();
+            string querydb = "SELECT account_number FROM account_code WHERE account_number = @accountno";
+            MySqlCommand cmd = new MySqlCommand(querydb, con);
+            cmd.Parameters.AddWithValue("@accountno", accountno);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            string result = "";
+            while (reader.Read())
+            {
+                string account_number = reader.GetString("account_number");
+                result = account_number;
+            }
+            if (reader.RecordsAffected > 0) 
+            {
+                con.Close(); 
+                return result; 
+            }
+            else
+            {
+                con.Close();
+                return null;
+            }
+        }
+
+        public void AddGLAccount(MySqlConnection con, int accountno, string accountname)
+        {
+            con.Open();
+            string insertacc = "INSERT INTO account_code (account_number, account_name) VALUES (@accountno, @accountname)";
+            MySqlCommand cmd = new MySqlCommand(insertacc, con);
+            cmd.Parameters.AddWithValue("@accountno", accountno);
+            cmd.Parameters.AddWithValue("@accountname", accountname);
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected > 0)
+            {
+                Console.WriteLine($"GL Account {accountno} {accountname} was successfully registered.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to register GL Account {accountno} {accountname}.");
+            }
+            con.Close();
+            Console.ReadKey();
+        }
+
         public void AddJournalEntry(MySqlConnection con, List<object[]> journalentry)
         {
             con.Open();
+            var documentnumber = journalentry[0][0];
             for (int i=0; i<journalentry.Count; i++)
             {
-                string insertentry = string.Format("INSERT INTO journal_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
-                "VALUES ('{0}', '{1}', '{2}', {3}, '{4}', '{5}', '{6}')",
-                journalentry[i][0], journalentry[i][1], journalentry[i][2], journalentry[i][3], journalentry[i][4], journalentry[i][5], journalentry[i][6]);
+                string insertentry = "INSERT INTO journal_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
+                "VALUES (@document_number, @account_number, @drcr, @amount, @add_date, @post_date, @description)";
                 MySqlCommand cmd = new MySqlCommand(insertentry, con);
-                using (MySqlDataReader reader = cmd.ExecuteReader())
+                cmd.Parameters.AddWithValue("@document_number", journalentry[i][0]);
+                cmd.Parameters.AddWithValue("@account_number", journalentry[i][1]);
+                cmd.Parameters.AddWithValue("@drcr", journalentry[i][2]);
+                cmd.Parameters.AddWithValue("@amount", journalentry[i][3]);
+                cmd.Parameters.AddWithValue("@add_date", journalentry[i][4]);
+                cmd.Parameters.AddWithValue("@post_date", journalentry[i][5]);
+                cmd.Parameters.AddWithValue("@description", journalentry[i][6]);
+                int rowsAffected = cmd.ExecuteNonQuery();
+                if (rowsAffected > 0)
                 {
-                    if (reader.RecordsAffected <= 0)
-                    {
-                        Console.WriteLine($"Failed to insert journal entry no. {journalentry[0][0]}.");
-                    }
+                    Console.WriteLine($"Journal Entry Number {documentnumber} was successfully added to the journal ledger.");
+
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to insert journal entry no. {documentnumber}. Please try again.");
                 }
             }
             con.Close();
@@ -142,36 +240,54 @@ namespace BrentSQLDB
         public void PostJournalEntryToGeneralLedger(MySqlConnection con, List<object[]> journalentry)
         {
             con.Open();
+            int insertrowsaffected = 0;
+            var documentnumber = journalentry[0][0];
             for (int i = 0; i <= journalentry.Count; i++)
             {
-                string insertentry = string.Format("INSERT INTO general_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
-                "VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')",
-                journalentry[i][0], journalentry[i][1], journalentry[i][2], journalentry[i][3], journalentry[i][4], journalentry[i][5], journalentry[i][6]);
+                string insertentry = "INSERT INTO general_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
+                "VALUES (@document_number, @account_number, @drcr, @amount, @add_date, @post_date, @description)";
                 MySqlCommand cmd = new MySqlCommand(insertentry, con);
+                cmd.Parameters.AddWithValue("@document_number", journalentry[i][0]);
+                cmd.Parameters.AddWithValue("@account_number", journalentry[i][1]);
+                cmd.Parameters.AddWithValue("@drcr", journalentry[i][2]);
+                cmd.Parameters.AddWithValue("@amount", journalentry[i][3]);
+                cmd.Parameters.AddWithValue("@add_date", journalentry[i][4]);
+                cmd.Parameters.AddWithValue("@post_date", journalentry[i][5]);
+                cmd.Parameters.AddWithValue("@description", journalentry[i][6]);
+                insertrowsaffected += cmd.ExecuteNonQuery();
             }
-            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry[0][0]);
+            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = '@document_number'";
             MySqlCommand cmd2 = new MySqlCommand(deleteentry, con);
+            cmd2.Parameters.AddWithValue("@document_number", journalentry[0][0]);
+            int deleterowsaffected = cmd2.ExecuteNonQuery();
+            if (insertrowsaffected > 0 && deleterowsaffected > 0 )
+            {
+                Console.WriteLine($"Journal Entry Number {documentnumber} was successfully posted to the General Ledger.");
+
+            }
+            else
+            {
+                Console.WriteLine($"Journal entry no. {documentnumber} posting to General Ledger has failed.");
+            }
             con.Close();
-            Console.WriteLine($"Journal Entry Number {journalentry[0][0]} was successfully posted.");
             Console.ReadKey();
         }
 
-        public void DeleteSavedJournalEntry(MySqlConnection con, string journalentry)
+        public void DeleteSavedJournalEntry(MySqlConnection con, string documentnumber)
         {
             con.Open();
-            string deleteentry = string.Format("DELETE FROM journal_ledger WHERE document_number = '{0}'", journalentry); // Journal Entries posted to the General Ledger cannot be deleted.
+            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = '@documentnumber'"; // Journal Entries posted to the General Ledger cannot be deleted.
             MySqlCommand cmd = new MySqlCommand(deleteentry, con);
-            using (MySqlDataReader reader = cmd.ExecuteReader())
+            cmd.Parameters.AddWithValue("@documentnumber", documentnumber);
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected > 0)
             {
-                if (reader.RecordsAffected > 0)
-                {
-                    Console.WriteLine($"Journal Entry Number {journalentry} was successfully deleted from journal ledger.");
+                Console.WriteLine($"Journal Entry Number {documentnumber} was successfully deleted from journal ledger.");
 
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to delete journal entry no. {journalentry}. Journal entry is not found in the journal ledger.");
-                }
+            }
+            else
+            {
+                Console.WriteLine($"Failed to delete journal entry no. {documentnumber}. Journal entry is not found in the journal ledger.");
             }
             con.Close();
         }

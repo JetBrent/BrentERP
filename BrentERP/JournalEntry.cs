@@ -68,7 +68,7 @@ namespace BrentERP
             JournalEntryLines.Add(line);
         }
 
-        public void AddLine(AccountCode accountNumber, string drCr, decimal amount) // Constructor with properties as input. Will be used for update JE functions
+        public void AddLine(GeneralLedgerAccount accountNumber, string drCr, decimal amount) // Constructor with properties as input. Will be used for update JE functions
         {
             var line = new JournalEntryLine(accountNumber, drCr, amount);
             line.LineAddDate = EntryAddDate;
@@ -127,7 +127,6 @@ namespace BrentERP
             }
             else
             {
-                Console.WriteLine($"Journal Entry Number {DocumentNumber} is either unbalanced or incomplete. Please recheck the journal entry.");
                 return null;
             }
         }
@@ -141,7 +140,7 @@ namespace BrentERP
             JournalEntryLines = linestart;
             for (int i = 0; i < je.Count; i++)
             {
-                var acc = new AccountCode(int.Parse(je[i][1].ToString()), ""); // TODO: Implement registration of account code to SQL database and apply the application of the account code here
+                var acc = new GeneralLedgerAccount(int.Parse(je[i][1].ToString()), ""); // TODO: Implement registration of account code to SQL database and apply the application of the account code here
                 var line = new JournalEntryLine(acc, je[i][2].ToString(), decimal.Parse(je[i][3].ToString()));
                 linestart.Add(line);
             }

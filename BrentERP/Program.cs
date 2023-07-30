@@ -76,14 +76,20 @@ namespace BrentERP
 
                     else if (parseinput == 4)
                     {
-                        Console.WriteLine("Viewing GL accounts...");
-                        continue;
+                        Console.Clear();
+                        BrentUtils.PrintRegisteredAccountCodes(con);
+                        Console.WriteLine("\nPress enter to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
                     }
 
                     else if (parseinput == 5)
                     {
-                        BrentUtils.RegisterAccountCode();
-                        //TODO: Registering GL account to SQL database
+                        Console.Clear();
+                        BrentUtils.RegisterAccountCode(con);
+                        Console.WriteLine("\nPress enter to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
                     }
 
                     else if (parseinput == 6)
@@ -98,8 +104,10 @@ namespace BrentERP
 
                     else if (parseinput == 8)
                     {
-                        BrentUtils.PrintGeneralLedger();
+                        Console.Clear();
+                        BrentUtils.PrintGeneralLedger(con);
                         Console.ReadKey();
+                        Console.Clear();
                     }
 
                     else if (parseinput == 9)

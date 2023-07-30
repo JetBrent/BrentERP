@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace BrentERP
 {
-    internal class AccountCode
+    internal class GeneralLedgerAccount
     {
         public int AccountNumber { get; set; }
 
         public string AccountName { get; set; }
 
-        public AccountCode(int accountNumber, string accountName)
+        public GeneralLedgerAccount(int accountNumber, string accountName)
         {
             AccountNumber = accountNumber;
             AccountName = accountName;
