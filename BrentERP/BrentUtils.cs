@@ -54,6 +54,46 @@ namespace BrentERP
             }
         }
 
+        public static void PrintJournalEntry(MySqlConnection con)
+        {
+            try
+            {
+                var db = new BrentDB();
+                Console.WriteLine("Please input the document number of the journal entry you want to query.");
+                var response = Console.ReadLine();
+                string column = "document_number";
+                var gl = db.QueryFromGeneralLedger(con, column, response);
+                foreach (var line in gl)
+                {
+                    Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
+
+                    }
+                    Console.WriteLine("");
+                }
+                var jl = db.QueryFromJournalLedger(con, column, response);
+                foreach (var line in jl)
+                {
+                    Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
+
+                    }
+                    Console.WriteLine("");
+                }
+                Console.WriteLine("Finished printing the queried journal entry.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred on printing the journal entry: {ex.Message}");
+            }
+        }
+
 
         public static void RegisterAccountCode(MySqlConnection con)
         {
@@ -133,7 +173,7 @@ namespace BrentERP
                 Console.WriteLine($"Exception has occured on verifying account code {ex}");
             }
         }
-        public static void ViewJournalLedger(MySqlConnection con)
+        public static void PrintJournalLedger(MySqlConnection con)
         {
             try
             {
@@ -158,7 +198,6 @@ namespace BrentERP
             {
                 Console.WriteLine($"Exception occurred on printing the journal ledger: {ex.Message}");
             }
-
         }
 
         public static void DeleteJournalLedgerEntry(MySqlConnection con)
@@ -190,9 +229,8 @@ namespace BrentERP
 
         } 
 
-        public static void CreateJE(MySqlConnection con)
+        public static void CreateJournalEntry(MySqlConnection con)
         {
-
             try
             {
                 var db = new BrentDB();
@@ -228,7 +266,15 @@ namespace BrentERP
                             bool accounttryparsesuccess = Int32.TryParse(accinputraw, out accountinput);
                             if (accounttryparsesuccess)
                             {
-                                accountinputsuccess = true;
+                                var queryresult = db.QueryAccountCode(con, accountinput);
+                                if (queryresult != null)
+                                {
+                                    accountinputsuccess = true;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Please input a registered account code!");
+                                }
                             }
                             else
                             {
@@ -236,8 +282,6 @@ namespace BrentERP
                             }
                             // Implement the ff: If accountinput not in SQL database, continue;
                         }
-
-                        GeneralLedgerAccount accountno = new GeneralLedgerAccount(accountinput, ""); //TODO: Implement get of account description from account code database
 
                         var drcrcheck = false;
                         var drcr = "";
@@ -273,7 +317,7 @@ namespace BrentERP
                             }
                         }
 
-                        JournalEntryLine line = new JournalEntryLine(accountno, drcr, amount); // Add new journal entry line
+                        JournalEntryLine line = new JournalEntryLine(accountinput, drcr, amount); // Add new journal entry line
                         je.AddLine(line);
 
                         Console.WriteLine("Do you want to add more lines? Press y if yes. Press any key to exit.");
@@ -302,7 +346,7 @@ namespace BrentERP
             // TODO: Implement Create JE function
         }
 
-        public static void PostJE(MySqlConnection con)
+        public static void PostJournalEntry(MySqlConnection con)
         {
             try
             {

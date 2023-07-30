@@ -18,11 +18,11 @@ namespace BrentERP
         public int? LineDocumentNumber { get; set; }
 
         // Nullable properties are to be provided by the journal entry once posted
-        public JournalEntryLine(GeneralLedgerAccount accountNo, string drCr, decimal amount)
+        public JournalEntryLine(int accountNo, string drCr, decimal amount)
         {
             {
                 Amount = amount;
-                LineAccountNumber = accountNo.AccountNumber;
+                LineAccountNumber = accountNo;
                 DrCr = drCr;
             }
         }

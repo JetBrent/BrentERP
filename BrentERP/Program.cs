@@ -52,7 +52,7 @@ namespace BrentERP
                     else if (parseinput == 1)
                     {
                         Console.Clear();
-                        BrentUtils.CreateJE(con);
+                        BrentUtils.CreateJournalEntry(con);
                         Console.WriteLine("Press enter to continue...");
                         Console.ReadKey();
                         Console.Clear();
@@ -61,7 +61,7 @@ namespace BrentERP
                     else if (parseinput == 2)
                     {
                         Console.Clear();
-                        BrentUtils.PostJE(con);
+                        BrentUtils.PostJournalEntry(con);
                         Console.WriteLine("Press enter to continue...");
                         Console.ReadKey();
                         Console.Clear();
@@ -69,8 +69,11 @@ namespace BrentERP
 
                     else if (parseinput == 3)
                     {
-                        //TODO: Implement of either posted or not yet posted journal entry
-                        Console.WriteLine("Viewing journal entry...");
+                        Console.Clear();
+                        BrentUtils.PrintJournalEntry(con);
+                        Console.WriteLine("Press enter to continue...");
+                        Console.ReadKey();
+                        Console.Clear();
                         continue;
                     }
 
@@ -113,7 +116,7 @@ namespace BrentERP
                     else if (parseinput == 9)
                     {
                         Console.Clear();
-                        BrentUtils.ViewJournalLedger(con);
+                        BrentUtils.PrintJournalLedger(con);
                         Console.ReadKey();
                         Console.Clear();
                     }

@@ -148,41 +148,79 @@ namespace BrentSQLDB
                 var line = new object[] { document_number, account_number, drcr, amount, add_date, post_date, description };
                 dblines.Add(line);
             }
-            if (reader.RecordsAffected > 0) Console.WriteLine($"Query for {condition} is successful!");
-            else
+            if (reader.HasRows)
             {
-                Console.WriteLine($"Query for {condition} has failed.");
+                Console.WriteLine($"Query for {condition} is successful!");
                 con.Close();
                 return dblines;
             }
 
-            con.Close();
-            return dblines;
+            else
+            {
+                Console.WriteLine($"Query for {condition} has failed.");
+                con.Close();
+                dblines = null;
+                return dblines;
+            }
         }
 
-        public string QueryAccountCode(MySqlConnection con, int accountno)
+        public List<object[]> QueryFromGeneralLedger(MySqlConnection con, string column, string condition)
         {
             con.Open();
+            string querydb = "SELECT * FROM general_ledger WHERE @column = @condition";
+            MySqlCommand cmd = new MySqlCommand(querydb, con);
+            cmd.Parameters.AddWithValue("@column", column);
+            cmd.Parameters.AddWithValue("@condition", condition);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            var dblines = new List<object[]>();
+            while (reader.Read())
+            {
+                string document_number = reader.GetString("document_number");
+                string account_number = reader.GetString("account_number");
+                string drcr = reader.GetString("drcr");
+                decimal amount = reader.GetDecimal("amount");
+                DateTime add_date = DateTime.Parse(reader.GetString("add_date"));
+                DateTime post_date = DateTime.Parse(reader.GetString("post_date"));
+                string description = reader.GetString("description");
+                var line = new object[] { document_number, account_number, drcr, amount, add_date, post_date, description };
+                dblines.Add(line);
+            }
+            if (reader.HasRows)
+            {
+                Console.WriteLine($"Query for {condition} is successful!");
+                con.Close();
+                return dblines;
+            }
+
+            else
+            {
+                Console.WriteLine($"Query for {condition} has failed.");
+                con.Close();
+                dblines = null;
+                return dblines;
+            }
+        }
+
+        public string QueryAccountCode(MySqlConnection con, int intaccountno)
+        {
+            con.Open();
+            string accountno = intaccountno.ToString();
             string querydb = "SELECT account_number FROM account_code WHERE account_number = @accountno";
             MySqlCommand cmd = new MySqlCommand(querydb, con);
             cmd.Parameters.AddWithValue("@accountno", accountno);
             MySqlDataReader reader = cmd.ExecuteReader();
-            string result = "";
-            while (reader.Read())
+            string result = null; // Initialize to null
+
+            if (reader.HasRows) // Check if the reader contains any rows
             {
-                string account_number = reader.GetString("account_number");
-                result = account_number;
+                while (reader.Read())
+                {
+                    string account_number = reader.GetString("account_number");
+                    result = account_number;
+                }
             }
-            if (reader.RecordsAffected > 0) 
-            {
-                con.Close(); 
-                return result; 
-            }
-            else
-            {
-                con.Close();
-                return null;
-            }
+            con.Close();
+            return result;
         }
 
         public void AddGLAccount(MySqlConnection con, int accountno, string accountname)
