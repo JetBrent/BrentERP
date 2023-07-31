@@ -27,7 +27,7 @@ namespace BrentERP
             }
         }
 
-        public object[] LineToArray(JournalEntryLine line)
+        public object[] LineToArray(JournalEntryLine line) // Converts the line elements from the insides of the array to either string or decimal
         {
             DateTime? addDate = line.LineAddDate;
             string formatAddDate = addDate?.ToString("yyyy-MM-dd HH:mm:ss") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");

@@ -275,12 +275,11 @@ namespace BrentSQLDB
             Console.ReadKey();
         }
 
-        public void PostJournalEntryToGeneralLedger(MySqlConnection con, List<object[]> journalentry)
+        public void PostJournalEntryToGeneralLedger(MySqlConnection con, List<object[]> journalentry, string documentnumber)
         {
             con.Open();
             int insertrowsaffected = 0;
-            var documentnumber = journalentry[0][0];
-            for (int i = 0; i <= journalentry.Count; i++)
+            for (int i = 0; i < journalentry.Count; i++)
             {
                 string insertentry = "INSERT INTO general_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
                 "VALUES (@document_number, @account_number, @drcr, @amount, @add_date, @post_date, @description)";
@@ -294,11 +293,11 @@ namespace BrentSQLDB
                 cmd.Parameters.AddWithValue("@description", journalentry[i][6]);
                 insertrowsaffected += cmd.ExecuteNonQuery();
             }
-            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = '@document_number'";
+            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = @document_number";
             MySqlCommand cmd2 = new MySqlCommand(deleteentry, con);
-            cmd2.Parameters.AddWithValue("@document_number", journalentry[0][0]);
+            cmd2.Parameters.AddWithValue("@document_number", documentnumber);
             int deleterowsaffected = cmd2.ExecuteNonQuery();
-            if (insertrowsaffected > 0 && deleterowsaffected > 0 )
+            if (insertrowsaffected > 0 && deleterowsaffected > 0)
             {
                 Console.WriteLine($"Journal Entry Number {documentnumber} was successfully posted to the General Ledger.");
 

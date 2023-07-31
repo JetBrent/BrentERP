@@ -62,7 +62,7 @@ namespace BrentERP
         public void AddLine(JournalEntryLine line) 
         {
             line.LineAddDate = EntryAddDate;
-            line.LinePostDate = EntryPostDate; // Post date would be added using the InsertPostDate method
+            line.LinePostDate = EntryPostDate; // Post date would be added using the constructor
             line.LineDescription = Description;
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
@@ -111,13 +111,8 @@ namespace BrentERP
             return list;
         }
         
-        public List<object[]> PrepareEntryForPosting() // TODO: Implement conversion of datetimes
+        public List<object[]> PrepareEntryForPosting() // Perform record and total checks and converts the journal entry into a List<object>
         {
-            EntryPostDate = DateTime.Now;
-            foreach (JournalEntryLine line in JournalEntryLines)
-            {
-                line.LinePostDate = EntryPostDate;
-            }
             var balanced = CheckEqual();
             var complete = CheckJELines();
             if (complete && balanced)
@@ -133,17 +128,33 @@ namespace BrentERP
 
         public JournalEntry(List<object[]> je) // To be used for posting or when the entry was read from the database and casted to a JournalEntry class
         {
-            EntryPostDate = DateTime.Now;
-            DocumentNumber = int.Parse(je[0][0].ToString()); // Read Only Data Type was detected. The value was first converted to string before it was parsed
+            if (je[0][5] == null)
+            {
+                EntryPostDate = DateTime.Now;
+            }
+            else
+            {
+                EntryPostDate = null;
+            }
+
+            DocumentNumber = int.Parse(je[0][0].ToString());
+
             Description = je[0][6].ToString();
+
+            EntryAddDate = DateTime.Parse(je[0][4].ToString());
+
             var linestart = new List<JournalEntryLine> { };
             JournalEntryLines = linestart;
+
             for (int i = 0; i < je.Count; i++)
             {
-                var acc = int.Parse(je[i][1].ToString()); // TODO: Implement registration of account code to SQL database and apply the application of the account code here
-                var line = new JournalEntryLine(acc, je[i][2].ToString(), decimal.Parse(je[i][3].ToString()));
-                linestart.Add(line);
+                var acc = int.Parse(je[i][1].ToString());
+                var drcr = je[i][2].ToString();
+                var amount = decimal.Parse(je[i][3].ToString());
+                var resultline = new JournalEntryLine(acc, drcr, amount); 
+                AddLine(resultline); //Uses the constructor for the AddLine method that gets the values of the current Journal Entry and adds them to every line
             }
+
         }
     }
 }

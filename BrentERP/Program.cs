@@ -33,6 +33,7 @@ namespace BrentERP
                 8. View General Ledger
                 9. View Journal Ledger
                 10. Delete Saved Journal Entry
+                11. View Trial Balance
                 
                 Press q to quit.
 
@@ -128,6 +129,11 @@ namespace BrentERP
                         Console.ReadKey();
                         Console.Clear();
 
+                    }
+
+                    else if (parseinput == 11)
+                    {
+                        continue; //TODO: Implement the viewing of trial balance here
                     }
 
                     else

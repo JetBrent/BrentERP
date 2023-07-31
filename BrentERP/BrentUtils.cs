@@ -368,18 +368,21 @@ namespace BrentERP
                 var db = new BrentDB();
                 Console.WriteLine("Please input the journal entry number that you want to post.");
                 var response = Console.ReadLine();
-                var result = db.QueryFromJournalLedger(con, response);
+                List<object[]> result = db.QueryFromJournalLedger(con, response);
+                Console.WriteLine("result print finished");
                 if (result != null)
                 {
                     var je = new JournalEntry(result);
-                    var postje = je.PrepareEntryForPosting(); // Performs Check Equal and Check Balance checks and converts the Journal Entry class to List<object> for posting to the general_ledger table
+                    var jetest2 = je.EntryToList();
+                    var postje = je.PrepareEntryForPosting();
+                    // Performs Check Equal and Check Balance checks and converts the Journal Entry class to List<object> for posting to the general_ledger table
                     if (postje != null)
                     {
-                        db.PostJournalEntryToGeneralLedger(con, postje);
+                        db.PostJournalEntryToGeneralLedger(con, postje, response);
                     }
                     else
                     {
-                        Console.WriteLine($"Journal Entry Number {je.DocumentNumber} is either unbalanced or incomplete. Please recheck the journal entry.");
+                        Console.WriteLine($"Journal Entry Number {response} is either unbalanced or incomplete. Please recheck the journal entry.");
                     }
                 }
                 else { Console.WriteLine("Invalid document number input. Please try again."); }
