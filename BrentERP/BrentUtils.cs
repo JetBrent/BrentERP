@@ -63,30 +63,42 @@ namespace BrentERP
                 var response = Console.ReadLine();
                 string column = "document_number";
                 var gl = db.QueryFromGeneralLedger(con, column, response);
-                foreach (var line in gl)
+                if (gl != null)
                 {
-                    Console.Write("|");
-                    foreach (var item in line)
+                    foreach (var line in gl)
                     {
-                        Console.Write(item);
                         Console.Write("|");
+                        foreach (var item in line)
+                        {
+                            Console.Write(item);
+                            Console.Write("|");
 
+                        }
+                        Console.WriteLine("");
                     }
-                    Console.WriteLine("");
+                    Console.WriteLine("Finished printing the queried journal entry in the general ledger.");
                 }
-                var jl = db.QueryFromJournalLedger(con, column, response);
-                foreach (var line in jl)
+                var jl = db.QueryFromJournalLedger(con, response);
+                if (jl != null)
                 {
-                    Console.Write("|");
-                    foreach (var item in line)
+                    foreach (var line in jl)
                     {
-                        Console.Write(item);
                         Console.Write("|");
+                        foreach (var item in line)
+                        {
+                            Console.Write(item);
+                            Console.Write("|");
 
+                        }
+                        Console.WriteLine("");
                     }
-                    Console.WriteLine("");
+                    Console.WriteLine("Finished printing the queried journal entry in the journal ledger.");
                 }
-                Console.WriteLine("Finished printing the queried journal entry.");
+                if (jl == null && gl == null)
+                {
+                    Console.WriteLine($"Journal entry number {response} was not found in the journal ledger or general ledger.");
+                }
+
             }
             catch (Exception ex)
             {
@@ -243,7 +255,7 @@ namespace BrentERP
                     while (true)
                     {
                         jedesc = Console.ReadLine();
-                        if (jedesc != null)
+                        if (jedesc != string.Empty)
                         {
                             break;
                         }
@@ -255,9 +267,11 @@ namespace BrentERP
                     JournalEntry je = new JournalEntry(intdocnum, jedesc);
 
                     bool JElinecreationsuccess = false;
+                    int jeline = 0;
                     while (!JElinecreationsuccess) // Adds the journal entry line to journal entry
                     {
-                        Console.WriteLine("Please input the account number of the journal entry line."); //TOD: Add code to check whether the account is registered through the SQL database
+                        jeline = jeline + 1;
+                        Console.WriteLine($"Please input the account number of line no. {jeline} of the journal entry."); //TOD: Add code to check whether the account is registered through the SQL database
                         bool accountinputsuccess = false;
                         int accountinput = 0;
                         while (!accountinputsuccess)
@@ -324,6 +338,7 @@ namespace BrentERP
                         var usercontinue = Console.ReadLine();
                         if (usercontinue.ToLower() == "y" || usercontinue.ToUpper() == "Y")
                         {
+
                             continue;
                         }
                         else
@@ -353,7 +368,7 @@ namespace BrentERP
                 var db = new BrentDB();
                 Console.WriteLine("Please input the journal entry number that you want to post.");
                 var response = Console.ReadLine();
-                var result = db.QueryFromJournalLedger(con, "document_number", response);
+                var result = db.QueryFromJournalLedger(con, response);
                 if (result != null)
                 {
                     var je = new JournalEntry(result);

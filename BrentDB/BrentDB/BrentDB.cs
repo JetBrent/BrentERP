@@ -127,12 +127,11 @@ namespace BrentSQLDB
             con.Close();
             return dblines;
         }
-        public List<object[]> QueryFromJournalLedger(MySqlConnection con, string column, string condition)
+        public List<object[]> QueryFromJournalLedger(MySqlConnection con, string condition)
         {
             con.Open();
-            string querydb = "SELECT * FROM journal_ledger WHERE @column = @condition";
+            string querydb = "SELECT * FROM journal_ledger WHERE document_number = @condition";
             MySqlCommand cmd = new MySqlCommand(querydb, con);
-            cmd.Parameters.AddWithValue("@column", column);
             cmd.Parameters.AddWithValue("@condition", condition);
             MySqlDataReader reader = cmd.ExecuteReader();
             var dblines = new List<object[]>();
@@ -157,7 +156,6 @@ namespace BrentSQLDB
 
             else
             {
-                Console.WriteLine($"Query for {condition} has failed.");
                 con.Close();
                 dblines = null;
                 return dblines;
@@ -194,7 +192,6 @@ namespace BrentSQLDB
 
             else
             {
-                Console.WriteLine($"Query for {condition} has failed.");
                 con.Close();
                 dblines = null;
                 return dblines;
@@ -247,6 +244,7 @@ namespace BrentSQLDB
         {
             con.Open();
             var documentnumber = journalentry[0][0];
+            int line = 0;
             for (int i=0; i<journalentry.Count; i++)
             {
                 string insertentry = "INSERT INTO journal_ledger (document_number, account_number, drcr, amount, add_date, post_date, description) " +
@@ -260,14 +258,16 @@ namespace BrentSQLDB
                 cmd.Parameters.AddWithValue("@post_date", journalentry[i][5]);
                 cmd.Parameters.AddWithValue("@description", journalentry[i][6]);
                 int rowsAffected = cmd.ExecuteNonQuery();
+
+                line = line + 1;
                 if (rowsAffected > 0)
                 {
-                    Console.WriteLine($"Journal Entry Number {documentnumber} was successfully added to the journal ledger.");
+                    Console.WriteLine($"Line no. {line} journal Entry Number {documentnumber} was successfully added to the journal ledger.");
 
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to insert journal entry no. {documentnumber}. Please try again.");
+                    Console.WriteLine($"Failed to insert line no. {line} of journal entry no. {documentnumber}. Please try again.");
                 }
             }
             con.Close();
