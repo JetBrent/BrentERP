@@ -149,7 +149,6 @@ namespace BrentSQLDB
             }
             if (reader.HasRows)
             {
-                Console.WriteLine($"Query for {condition} is successful!");
                 con.Close();
                 return dblines;
             }
@@ -185,7 +184,6 @@ namespace BrentSQLDB
             }
             if (reader.HasRows)
             {
-                Console.WriteLine($"Query for {condition} is successful!");
                 con.Close();
                 return dblines;
             }
@@ -313,19 +311,12 @@ namespace BrentSQLDB
         public void DeleteSavedJournalEntry(MySqlConnection con, string documentnumber)
         {
             con.Open();
-            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = '@documentnumber'"; // Journal Entries posted to the General Ledger cannot be deleted.
+            string deleteentry = "DELETE FROM journal_ledger WHERE document_number = @documentnumber"; // Journal Entries posted to the General Ledger cannot be deleted.
             MySqlCommand cmd = new MySqlCommand(deleteentry, con);
             cmd.Parameters.AddWithValue("@documentnumber", documentnumber);
             int rowsAffected = cmd.ExecuteNonQuery();
-            if (rowsAffected > 0)
-            {
-                Console.WriteLine($"Journal Entry Number {documentnumber} was successfully deleted from journal ledger.");
-
-            }
-            else
-            {
-                Console.WriteLine($"Failed to delete journal entry no. {documentnumber}. Journal entry is not found in the journal ledger.");
-            }
+            if (rowsAffected > 0) Console.WriteLine($"Journal Entry Number {documentnumber} was successfully deleted from journal ledger.");
+            else Console.WriteLine($"Failed to delete journal entry no. {documentnumber}. Journal entry is not found in the journal ledger.");
             con.Close();
         }
 
@@ -358,7 +349,6 @@ namespace BrentSQLDB
             else journaldocumentnumber++;
 
             if (journaldocumentnumber == generaldocumentnumber) journaldocumentnumber++; // Compares the latest document number from the journal ledger and from the general ledger. If they are equal, the journal ledger document number is incremented
-
 
             return journaldocumentnumber;
         }

@@ -9,13 +9,13 @@ namespace BrentERP
 {
     internal class JournalEntryLine
     {
-        public int LineAccountNumber { get; set; }
-        public string DrCr { get; set; } // Debit or Credit
-        public decimal Amount { get; set; }
-        public DateTime? LineAddDate { get; set; }
-        public DateTime? LinePostDate { get; set; }
-        public string? LineDescription { get; set; }
-        public int? LineDocumentNumber { get; set; }
+        public int LineAccountNumber;
+        public string DrCr; // Debit or Credit
+        public decimal Amount;
+        public DateTime? LineAddDate;
+        public DateTime? LinePostDate;
+        public string? LineDescription;
+        public int? LineDocumentNumber;
 
         // Nullable properties are to be provided by the journal entry once posted
         public JournalEntryLine(int accountNo, string drCr, decimal amount)

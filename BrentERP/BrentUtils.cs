@@ -369,7 +369,6 @@ namespace BrentERP
                 Console.WriteLine("Please input the journal entry number that you want to post.");
                 var response = Console.ReadLine();
                 List<object[]> result = db.QueryFromJournalLedger(con, response);
-                Console.WriteLine("result print finished");
                 if (result != null)
                 {
                     var je = new JournalEntry(result);
