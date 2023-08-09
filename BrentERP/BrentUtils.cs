@@ -61,8 +61,7 @@ namespace BrentERP
                 var db = new BrentDB();
                 Console.WriteLine("Please input the document number of the journal entry you want to query.");
                 var response = Console.ReadLine();
-                string column = "document_number";
-                var gl = db.QueryFromGeneralLedger(con, column, response);
+                var gl = db.QueryFromGeneralLedger(con, response);
                 if (gl != null)
                 {
                     foreach (var line in gl)
@@ -212,6 +211,33 @@ namespace BrentERP
             }
         }
 
+        public static void PrintTrialBalance(MySqlConnection con)
+        {
+            try
+            {
+                Console.WriteLine("\nPrinting Trial Balance...\n");
+                var db = new BrentDB();
+                var tb = db.ReadTrialBalance(con);
+                foreach (var line in tb)
+                {
+                    Console.Write("|");
+                    foreach (var item in line)
+                    {
+                        Console.Write(item);
+                        Console.Write("|");
+
+                    }
+                    Console.WriteLine("");
+                }
+                Console.WriteLine("\nTrial Balance Printing Successful!\n");
+                Console.WriteLine("Press enter to return to the main menu...");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occurred on printing the Trial Balance: {ex.Message}");
+            }
+        }
+
         public static void DeleteJournalLedgerEntry(MySqlConnection con)
         {
             try
@@ -250,7 +276,7 @@ namespace BrentERP
                 while (!JEcreationsuccess)
                 {
                     int intdocnum = db.GetUniqueDocumentNumber(con);
-                    Console.WriteLine($"Please input the journal entry description for journal entry number {intdocnum}.");
+                    Console.WriteLine($"Please input the journal entry description for journal entry number: {intdocnum}.");
                     string jedesc;
                     while (true)
                     {
@@ -271,7 +297,7 @@ namespace BrentERP
                     while (!JElinecreationsuccess) // Adds the journal entry line to journal entry
                     {
                         jeline = jeline + 1;
-                        Console.WriteLine($"Please input the account number of line no. {jeline} of the journal entry."); //TOD: Add code to check whether the account is registered through the SQL database
+                        Console.WriteLine($"Please input the account number of line no. {jeline} of journal entry number: {intdocnum}."); //TOD: Add code to check whether the account is registered through the SQL database
                         bool accountinputsuccess = false;
                         int accountinput = 0;
                         while (!accountinputsuccess)
@@ -373,7 +399,7 @@ namespace BrentERP
                 {
                     var je = new JournalEntry(result);
                     var jetest2 = je.EntryToList();
-                    var postje = je.PrepareEntryForPosting();
+                    var postje = je.CheckEntryForPosting();
                     // Performs Check Equal and Check Balance checks and converts the Journal Entry class to List<object> for posting to the general_ledger table
                     if (postje != null)
                     {

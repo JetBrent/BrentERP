@@ -7,7 +7,7 @@ namespace BrentSQLDB
 {
     public class BrentDB
     {
-        public void Init(string server, string uid, string password) // Intializing the database and tables needed for the functions
+        public void Init(string server, string uid, string password) // Intializing the database and tables needed for the system functions
         {
             try
             {
@@ -76,7 +76,7 @@ namespace BrentSQLDB
                 string document_number = reader.GetString("document_number");
                 string account_number = reader.GetString("account_number");
                 string drcr = reader.GetString("drcr");
-                decimal amount = reader.GetDecimal("amount");
+                decimal amount = Decimal.Round(reader.GetDecimal("amount"),2);
                 string add_date = reader.GetString("add_date");
                 string post_date = reader.GetString("post_date");
                 string description = reader.GetString("description");
@@ -99,7 +99,7 @@ namespace BrentSQLDB
                 string document_number = reader.GetString("document_number");
                 string account_number = reader.GetString("account_number");
                 string drcr = reader.GetString("drcr");
-                decimal amount = reader.GetDecimal("amount");
+                decimal amount = Decimal.Round(reader.GetDecimal("amount"), 2);
                 string add_date = reader.GetString("add_date");
                 string post_date = reader.GetString("post_date");
                 string description = reader.GetString("description");
@@ -140,7 +140,7 @@ namespace BrentSQLDB
                 string document_number = reader.GetString("document_number");
                 string account_number = reader.GetString("account_number");
                 string drcr = reader.GetString("drcr");
-                decimal amount = reader.GetDecimal("amount");
+                decimal amount = Decimal.Round(reader.GetDecimal("amount"), 2);
                 DateTime add_date = DateTime.Parse(reader.GetString("add_date"));
                 DateTime post_date = DateTime.Parse(reader.GetString("post_date"));
                 string description = reader.GetString("description");
@@ -161,12 +161,11 @@ namespace BrentSQLDB
             }
         }
 
-        public List<object[]> QueryFromGeneralLedger(MySqlConnection con, string column, string condition)
+        public List<object[]> QueryFromGeneralLedger(MySqlConnection con, string condition)
         {
             con.Open();
-            string querydb = "SELECT * FROM general_ledger WHERE @column = @condition";
+            string querydb = "SELECT * FROM general_ledger WHERE document_number = @condition";
             MySqlCommand cmd = new MySqlCommand(querydb, con);
-            cmd.Parameters.AddWithValue("@column", column);
             cmd.Parameters.AddWithValue("@condition", condition);
             MySqlDataReader reader = cmd.ExecuteReader();
             var dblines = new List<object[]>();
@@ -175,7 +174,7 @@ namespace BrentSQLDB
                 string document_number = reader.GetString("document_number");
                 string account_number = reader.GetString("account_number");
                 string drcr = reader.GetString("drcr");
-                decimal amount = reader.GetDecimal("amount");
+                decimal amount = Decimal.Round(reader.GetDecimal("amount"), 2);
                 DateTime add_date = DateTime.Parse(reader.GetString("add_date"));
                 DateTime post_date = DateTime.Parse(reader.GetString("post_date"));
                 string description = reader.GetString("description");
@@ -320,7 +319,7 @@ namespace BrentSQLDB
             con.Close();
         }
 
-        public int GetUniqueDocumentNumber(MySqlConnection con)
+        public int GetUniqueDocumentNumber(MySqlConnection con) // Gets and compares the document numbers from the general ledger and journal ledger and returns a unique document number
         {
             con.Open(); //Search for the latest document number in the journal ledger 
             string selectentries = "SELECT document_number FROM journal_ledger ORDER BY document_number DESC LIMIT 1";
@@ -331,7 +330,9 @@ namespace BrentSQLDB
             {
                 string document_number = reader.GetString("document_number");
                 bool booldocumentnumber = Int32.TryParse(document_number, out journaldocumentnumber);
+                if (!booldocumentnumber) journaldocumentnumber = 0;
             }
+            
             con.Close(); //MySqlDataReader must first be closed to initiate another SQL command
 
             con.Open(); //Search for the latest document number in the general ledger 
@@ -343,14 +344,51 @@ namespace BrentSQLDB
             {
                 string document_number = reader.GetString("document_number");
                 bool booldocumentnumber = Int32.TryParse(document_number, out generaldocumentnumber);
+                if (!booldocumentnumber) journaldocumentnumber = 0;
             }
             con.Close();
-            if (journaldocumentnumber == 0) journaldocumentnumber = 1;
-            else journaldocumentnumber++;
 
-            if (journaldocumentnumber == generaldocumentnumber) journaldocumentnumber++; // Compares the latest document number from the journal ledger and from the general ledger. If they are equal, the journal ledger document number is incremented
+            if (journaldocumentnumber != 0) 
+            {
+                // Compares the latest document number from the journal ledger and from the general ledger.
+                // If they are equal or the general ledger number is less that the journal ledger number, the journal ledger document number is incremented
+                // If the general ledger number is higher, the journal number will be the incremented general ledger number
+
+                if (journaldocumentnumber < generaldocumentnumber) 
+                {
+                    journaldocumentnumber = generaldocumentnumber;
+                    journaldocumentnumber++;
+                }
+                else
+                {
+                    journaldocumentnumber++;
+                }
+            }
+            else
+            {
+                journaldocumentnumber = 1;
+            }
 
             return journaldocumentnumber;
+        }
+
+        public List<object[]> ReadTrialBalance(MySqlConnection con) // Reads all the records from the database and returns a list of arrays
+        {
+            con.Open();
+            string selectentries = "SELECT SUM(amount) AS total_amount,account_code.account_name AS account_name,general_ledger.account_number FROM general_ledger LEFT JOIN account_code ON general_ledger.account_number = account_code.account_number GROUP BY general_ledger.account_number, account_code.account_name";
+            MySqlCommand cmd = new MySqlCommand(selectentries, con);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            var dblines = new List<object[]>();
+            while (reader.Read())
+            {
+                string account_number = reader.GetString("account_number");
+                string account_name = reader.GetString("account_name");
+                decimal total_amount = Decimal.Round(reader.GetDecimal("total_amount"), 2);
+                var line = new object[] { account_number, account_name, total_amount };
+                dblines.Add(line);
+            }
+            con.Close();
+            return dblines;
         }
     }
 }

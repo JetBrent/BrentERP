@@ -19,11 +19,10 @@ namespace BrentERP
         public JournalEntry(int documentNumber, string description)
         {
             EntryAddDate = DateTime.Now;
-            EntryPostDate = null; // Post date would be added using the InsertPostDate method
+            EntryPostDate = EntryAddDate; // Post date would be added using the InsertPostDate method
             DocumentNumber = documentNumber;
             Description = description;
-            var linestart = new List<JournalEntryLine> { };
-            JournalEntryLines = linestart;
+            JournalEntryLines = new List<JournalEntryLine> { };
         }
 
         public List<JournalEntryLine> GetJE()
@@ -32,7 +31,7 @@ namespace BrentERP
 
         }
 
-        public bool CheckEqual()
+        public bool CheckAmountBalance()
         {
             decimal DebitAmount = 0;
             decimal CreditAmount = 0;
@@ -77,7 +76,7 @@ namespace BrentERP
             line.LineDocumentNumber = DocumentNumber;
             JournalEntryLines.Add(line);
         }
-        public bool CheckJELines() //Check the number of lines in the journal entry
+        public bool CheckLineComplete() //Check the number of lines in the journal entry
         {
             int numberoflines = 0;
             foreach (JournalEntryLine line in JournalEntryLines) numberoflines++;
@@ -96,7 +95,7 @@ namespace BrentERP
             Console.WriteLine("----------------------------------------------------------------------------");
             foreach (JournalEntryLine j in JournalEntryLines)
             {
-                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.LineAccountNumber, j.DrCr, j.Amount, j.LineAddDate, j.LineDescription);
+                Console.WriteLine(" {0} | {1} | {2} | {3} | {4} | {5}", j.LineDocumentNumber, j.LineAccountNumber, j.DrCr, Decimal.Round(j.Amount,2), j.LineAddDate, j.LineDescription);
             }
         }
 
@@ -111,10 +110,10 @@ namespace BrentERP
             return list;
         }
         
-        public List<object[]> PrepareEntryForPosting() // Perform record and total checks and converts the journal entry into a List<object>
+        public List<object[]> CheckEntryForPosting() // Perform record and total checks and converts the journal entry into a List<object>
         {
-            var balanced = CheckEqual();
-            var complete = CheckJELines();
+            var balanced = CheckAmountBalance();
+            var complete = CheckLineComplete();
             if (complete && balanced)
             {
                 var list = this.EntryToList();
@@ -128,14 +127,7 @@ namespace BrentERP
 
         public JournalEntry(List<object[]> je) // To be used for posting or when the entry was read from the database and casted to a JournalEntry class
         {
-            if (je[0][5] == null)
-            {
-                EntryPostDate = DateTime.Now;
-            }
-            else
-            {
-                EntryPostDate = null;
-            }
+
 
             DocumentNumber = int.Parse(je[0][0].ToString());
 
@@ -143,8 +135,14 @@ namespace BrentERP
 
             EntryAddDate = DateTime.Parse(je[0][4].ToString());
 
-            var linestart = new List<JournalEntryLine> { };
-            JournalEntryLines = linestart;
+            EntryPostDate = DateTime.Parse(je[0][5].ToString());
+
+            if (EntryPostDate == EntryAddDate)
+            {
+                EntryPostDate = DateTime.Now;
+            }
+
+            JournalEntryLines = new List<JournalEntryLine> { };
 
             for (int i = 0; i < je.Count; i++)
             {

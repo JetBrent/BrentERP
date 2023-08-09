@@ -133,7 +133,10 @@ namespace BrentERP
 
                     else if (parseinput == 11)
                     {
-                        continue; //TODO: Implement the viewing of trial balance here
+                        Console.Clear();
+                        BrentUtils.PrintTrialBalance(con);
+                        Console.ReadKey();
+                        Console.Clear();
                     }
 
                     else
