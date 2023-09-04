@@ -40,7 +40,7 @@ namespace BrentERP
                 *************************
                 """);
                 string userinput = Console.ReadLine();
-                var boolparseinput = Int32.TryParse(userinput, out var parseinput);
+                var inputParseSuccessful = Int32.TryParse(userinput, out var parseinput);
                 if (userinput != null)
                 {
                     if (userinput.ToLower() == "q" || userinput.ToUpper() == "Q")

@@ -16,7 +16,7 @@ namespace BrentERP
         public static void InitDB() 
         {
             var db = new BrentDB();
-            db.Init("localhost","root","MYBRENT.sql!");
+            db.Init("localhost","SQLDB-User","MYSQL!.dbuser");
             Console.WriteLine("Press enter to continue to the main program...");
             Console.ReadKey();
             Console.Clear();

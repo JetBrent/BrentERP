@@ -14,7 +14,7 @@ namespace BrentSQLDB
                 Console.WriteLine("BrentDB Database Initialization has started.");
 
                 string connstring = string.Format("server={0};uid={1};password={2};", server, uid, password);
-                MySqlConnection con = new MySqlConnection(connstring);
+                MySqlConnection con = new MySqlConnection(connstring); // Connect to DB
                 con.ConnectionString = connstring;
 
                 con.Open();
