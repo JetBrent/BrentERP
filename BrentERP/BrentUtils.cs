@@ -218,6 +218,7 @@ namespace BrentERP
                 Console.WriteLine("\nPrinting Trial Balance...\n");
                 var db = new BrentDB();
                 var tb = db.ReadTrialBalance(con);
+                Console.WriteLine("|Account Number|Account Name|Amount|");
                 foreach (var line in tb)
                 {
                     Console.Write("|");
